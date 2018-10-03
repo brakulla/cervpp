@@ -9,6 +9,7 @@ void HttpServer::Listen(int port) {
      *  create a TcpListener object move it to a detached thread
      *      it will accept incoming tcp connections, parse them and send the resulting HttpRequest instance
      *      back with callback function
+     *
      * TODO: HttpRequestParser
      *  an HttpRequestParser object will be created in the detached thread
      *  for each incoming tcp connection request
@@ -20,6 +21,12 @@ void HttpServer::Listen(int port) {
      *      it will be used to storing and processing incoming http requests
      */
 
+    std::future<int> listenerFuture = listener.Listen(port, 5);
+    listener.run();
+    int newSocketFd = listenerFuture.get();
+    char buffer[1024];
+    ssize_t size = read(newSocketFd, buffer, 1024);
+    std::cout << "size: " << size << "buffer " << buffer << "\n";
 }
 
 void HttpServer::RegisterController(std::string path) {
