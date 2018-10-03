@@ -12,15 +12,11 @@ TcpListener::TcpListener() :
 
 TcpListener::~TcpListener()
 {
-
+    this->stop();
 }
 
-std::future<int> TcpListener::Listen(int port, int maxConnections)
+void TcpListener::Listen(unsigned short port, int maxConnections)
 {
-    // TODO: create a server socket and start listenin
-    // TODO: when aa conenction is received, use HttpRequestHandler class parser functions
-    //          then send the HttpRequest instance with callback function
-
     m_serverFd = socket(AF_INET, SOCK_STREAM, 0);
     if (0 == m_serverFd) {
         // TODO: throw exception
@@ -51,28 +47,45 @@ std::future<int> TcpListener::Listen(int port, int maxConnections)
     std::cout << "listen success\n";
 
     m_isRunning = true;
-    return m_signaller.get_future();
+    m_listenerThread = std::thread(&TcpListener::run, this);
 }
 
 void TcpListener::run()
 {
     while (m_isRunning) {
-        // TODO: wait for new connection
-        // TODO: if a new connection received, write it into HttpRequestHandler object
         int newSocket;
         socklen_t addrLength = sizeof(m_serverAddress);
         newSocket = accept(m_serverFd, (struct sockaddr *)&m_serverAddress, &addrLength);
-        if (0 < newSocket) {
+        if (0 > newSocket) {
             // TODO: throw exception
             std::cout << "accept failed\n";
         }
         // TODO: log("New connection received, etc.")
         std::cout << "New connection received\n";
-        m_signaller.set_value(newSocket);
+        insertNewConnection(newSocket);
     }
 }
 
 void TcpListener::stop()
 {
     m_isRunning = false;
+    m_listenerThread.join();
+}
+
+int TcpListener::GetNewConnection()
+{
+    std::unique_lock lock(m_mutex);
+    while (m_connectionQueue.empty()) {
+        m_conditionVariable.wait(lock);
+    }
+    int nextFd = m_connectionQueue.front();
+    m_connectionQueue.pop();
+    return nextFd;
+}
+
+void TcpListener::insertNewConnection(int socketFd) {
+    std::unique_lock lock(m_mutex);
+    m_connectionQueue.push(socketFd);
+    lock.unlock();
+    m_conditionVariable.notify_one();
 }

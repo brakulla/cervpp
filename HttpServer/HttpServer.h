@@ -6,15 +6,16 @@
 #define CERVPP_HTTPSERVER_H
 
 #include <string>
-
-#include <stdio.h>
-#include <stdlib.h>
+#include <thread>
 #include <unistd.h>
 
 #include "Listener/TcpListener.h"
 
 class HttpServer {
 public:
+    HttpServer();
+    ~HttpServer();
+
     void Listen(int port);
     void RegisterController(std::string path/*, IHttpController*/);
 

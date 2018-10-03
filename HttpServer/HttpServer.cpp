@@ -4,7 +4,14 @@
 
 #include "HttpServer.h"
 
-void HttpServer::Listen(int port) {
+HttpServer::HttpServer()
+= default;
+
+HttpServer::~HttpServer()
+= default;
+
+void HttpServer::Listen(int port)
+{
     /* TODO: TcpListener
      *  create a TcpListener object move it to a detached thread
      *      it will accept incoming tcp connections, parse them and send the resulting HttpRequest instance
@@ -21,15 +28,19 @@ void HttpServer::Listen(int port) {
      *      it will be used to storing and processing incoming http requests
      */
 
-    std::future<int> listenerFuture = listener.Listen(port, 5);
-    listener.run();
-    int newSocketFd = listenerFuture.get();
-    char buffer[1024];
-    ssize_t size = read(newSocketFd, buffer, 1024);
-    std::cout << "size: " << size << "buffer " << buffer << "\n";
+    listener.Listen(port, 5);
+    while (true) {
+        int newSocketFd = listener.GetNewConnection();
+        char buffer[1024];
+        ssize_t size = read(newSocketFd, buffer, 1024);
+        std::cout << "size: " << size << "\nbuffer\n" << buffer << "\n";
+        close(newSocketFd);
+    }
+
 }
 
-void HttpServer::RegisterController(std::string path) {
+void HttpServer::RegisterController(std::string path)
+{
     /*
      * TODO: HttpRequestDispatcher
      *  it will dispatch the incoming http requests to appropriate controllers

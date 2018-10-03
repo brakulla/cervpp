@@ -19,25 +19,32 @@
 #include <future>
 
 #include <iostream>
+#include <queue>
 
 class TcpListener {
 public:
     TcpListener();
     ~TcpListener();
 
-    // TODO: change the signature ot below function to call the callback function with HttpRequest parameter
-    std::future<int> Listen(int port, int maxConnections);
+    void Listen(unsigned short port, int maxConnections);
+    int GetNewConnection();
+
+private:
+    int m_serverFd;
+    struct sockaddr_in m_serverAddress;
+
+private: // thread
+    std::thread m_listenerThread;
+    std::atomic_bool m_isRunning;
+    std::mutex m_mutex;
+    std::condition_variable m_conditionVariable;
 
     void run();
     void stop();
 
-private:
-    int m_serverFd;
-
-    struct sockaddr_in m_serverAddress;
-    std::atomic_bool m_isRunning;
-
-    std::promise<int> m_signaller;
+private: // queue
+    std::queue<int> m_connectionQueue;
+    void insertNewConnection(int socketFd);
 };
 
 
