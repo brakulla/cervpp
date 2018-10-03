@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h>
 #include <atomic>
 #include <future>
 
@@ -28,6 +29,7 @@ public:
 
     void Listen(unsigned short port, int maxConnections);
     int GetNewConnection();
+    void CloseConnection(int socketFd);
 
 private:
     int m_serverFd;

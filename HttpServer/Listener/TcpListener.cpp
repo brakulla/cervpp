@@ -89,3 +89,8 @@ void TcpListener::insertNewConnection(int socketFd) {
     lock.unlock();
     m_conditionVariable.notify_one();
 }
+
+void TcpListener::CloseConnection(int sockedFd)
+{
+    close(sockedFd);
+}

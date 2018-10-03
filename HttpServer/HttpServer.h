@@ -9,7 +9,7 @@
 #include <thread>
 #include <unistd.h>
 
-#include "Listener/TcpListener.h"
+#include "Listener/HttpRequestHandler.h"
 
 class HttpServer {
 public:
@@ -20,7 +20,7 @@ public:
     void RegisterController(std::string path/*, IHttpController*/);
 
 private:
-    TcpListener listener;
+    HttpRequestHandler requestHandler;
 
 };
 
