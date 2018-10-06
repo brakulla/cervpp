@@ -5,7 +5,9 @@
 #ifndef CERVPP_HTTPREQUESTHANDLER_H
 #define CERVPP_HTTPREQUESTHANDLER_H
 
-#include "TcpListener.h"
+#include <regex>
+
+#include "../Tcp/TcpListener.h"
 #include "../HttpRequest.h"
 
 class HttpRequestHandler {
@@ -20,8 +22,11 @@ public:
 private:
     std::shared_ptr<TcpListener> m_tcpListener;
 
-    std::string readIncomingData(int socketFd);
-    HttpRequest parseIncomingData(std::string &data);
+    HttpRequest parseIncomingData(HttpRequest &request, std::string &data);
+
+private: // auxilary
+    void parseRequestLine(std::string &requestLine, HttpRequest &request);
+    void parseHeaderLine(std::string &headerLine, HttpRequest &request);
 
 };
 

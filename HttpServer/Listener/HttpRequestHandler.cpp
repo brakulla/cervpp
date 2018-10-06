@@ -32,37 +32,75 @@ void HttpRequestHandler::Listen(unsigned short port, int maxConnectionSize)
 
 HttpRequest HttpRequestHandler::GetNextRequest()
 {
-    int newSocketFd = m_tcpListener->GetNewConnection();
+    std::shared_ptr<TcpSocket> newSocket = m_tcpListener->GetNewConnection();
 
-    std::string incomingData = readIncomingData(newSocketFd);
+    std::string incomingData;
+    *newSocket >> incomingData;
     std::cout << "Incoming data:\n" << incomingData << "\n";
-    m_tcpListener->CloseConnection(newSocketFd); // TODO: this should be handled by HttpResponseHandler send function
-    HttpRequest request = parseIncomingData(incomingData);
+    HttpRequest request(newSocket);
+    parseIncomingData(request, incomingData);
+//    m_tcpListener->CloseConnection(newSocket); // TODO: this should be handled by HttpResponseHandler send function
+
+    std::cout << "Request:\n" << request;
 
     return request;
 }
 
-std::string HttpRequestHandler::readIncomingData(int socketFd)
-{
-    std::string data;
-    char incomingData[1024];
-    ssize_t incomingDataSize;
-
-    do {
-        incomingDataSize = ::recv(socketFd, incomingData, sizeof(incomingData), 0);
-        data.append(incomingData, (unsigned long)incomingDataSize);
-    } while (incomingDataSize == sizeof(incomingData));
-
-    return data;
-}
-
-
-HttpRequest HttpRequestHandler::parseIncomingData(std::string &data)
+HttpRequest HttpRequestHandler::parseIncomingData(HttpRequest &request, std::string &data)
 {
     std::vector<std::string> lines;
     splitString(data, lines, '\n');
 
-    // TODO: parse input
+    auto lineIt = lines.begin();
+    parseRequestLine(*lineIt, request);
+    ++lineIt;
+    for (; lineIt != lines.end(); ++lineIt) {
+        if ("\r" == (*lineIt)) {
+            ++lineIt;
+            break;
+        }
+        parseHeaderLine(*lineIt, request);
+    }
 
-    return HttpRequest();
+    std::string body;
+    for (; lineIt != lines.end(); ++lineIt) {
+        body.append(*lineIt).append("\n");
+    }
+    request.setRawBody(body);
+
+    return request;
+}
+
+void HttpRequestHandler::parseRequestLine(std::string &requestLine, HttpRequest &request)
+{
+    std::smatch match;
+    bool res = std::regex_match(requestLine, match, std::regex(R"regex(^(\w+)\s(.+)\s(\w+\/[0-9]\.[0-9])\r$)regex"));
+    if (!res) {
+        // TODO: throw exception
+        std::cout << "No match!\n";
+    }
+    if (match.size() != 4) {
+        // TODO: throw exception
+        std::cout << "Match size is not 3! " << match.size()-1 << "\n"; // first match is the whole regex
+    }
+
+    request.setMethod(match[1].str());
+    request.setURI(match[2].str());
+    request.setHttpVersion(match[3].str());
+}
+
+void HttpRequestHandler::parseHeaderLine(std::string &headerLine, HttpRequest &request)
+{
+    std::smatch match;
+    bool res = std::regex_match(headerLine, match, std::regex(R"regex(^(.+):\s(.+)\r$)regex"));
+    if (!res) {
+        // TODO: throw exception
+        std::cout << "No match! " << headerLine << "\n";
+    }
+    if (match.size() != 3) {
+        // TODO: throw exception
+        std::cout << "Match size is not 2! " << match.size()-1 << "\n"; // first match is the whole regex
+    }
+
+    request.setHeader(match[1].str(), match[2].str());
 }
