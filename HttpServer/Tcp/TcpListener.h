@@ -17,10 +17,14 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <atomic>
-#include <future>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 #include <iostream>
 #include <queue>
+
+#include "TcpSocket.h"
 
 class TcpListener {
 public:
@@ -28,7 +32,7 @@ public:
     ~TcpListener();
 
     void Listen(unsigned short port, int maxConnections);
-    int GetNewConnection();
+    std::shared_ptr<TcpSocket> GetNewConnection();
     void CloseConnection(int socketFd);
 
 private:

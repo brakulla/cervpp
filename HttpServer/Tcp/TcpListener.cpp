@@ -72,7 +72,7 @@ void TcpListener::stop()
     m_listenerThread.join();
 }
 
-int TcpListener::GetNewConnection()
+std::shared_ptr<TcpSocket> TcpListener::GetNewConnection()
 {
     std::unique_lock lock(m_mutex);
     while (m_connectionQueue.empty()) {
@@ -80,7 +80,11 @@ int TcpListener::GetNewConnection()
     }
     int nextFd = m_connectionQueue.front();
     m_connectionQueue.pop();
-    return nextFd;
+
+//    TcpSocket *socket;
+//    socket = new TcpSocket(nextFd);
+    std::shared_ptr<TcpSocket> tcpSocket(new TcpSocket(nextFd));
+    return tcpSocket;
 }
 
 void TcpListener::insertNewConnection(int socketFd) {
