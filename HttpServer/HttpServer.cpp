@@ -24,11 +24,18 @@ void HttpServer::Listen(int port)
      *      it will be used to storing and processing incoming http requests
      */
 
+    HttpResponse *response;
     requestHandler.Listen(port, 5);
     while (true) {
         HttpRequest request = requestHandler.GetNextRequest();
+        response = new HttpResponse(request);
+        // TODO: use a controller here
+        response->status(200);
+        response->send();
+        response->setHeader("Connection", "Closed");
     }
 
+    delete response;
 }
 
 void HttpServer::RegisterController(std::string path)

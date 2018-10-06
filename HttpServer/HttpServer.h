@@ -10,6 +10,8 @@
 #include <unistd.h>
 
 #include "Listener/HttpRequestHandler.h"
+#include "HttpRequest.h"
+#include "HttpResponse.h"
 
 class HttpServer {
 public:

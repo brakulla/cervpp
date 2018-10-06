@@ -7,9 +7,77 @@
 #ifndef CERVPP_HTTPREQUEST_H
 #define CERVPP_HTTPREQUEST_H
 
+#include <iostream>
+#include <string>
+#include <map>
+
+#include <memory>
+#include <bits/shared_ptr.h>
+
+#include "Tcp/TcpSocket.h"
+
+enum class HTTP_METHOD {
+    eUNKNOWN,
+    eOPTIONS,
+    eGET,
+    eHEAD,
+    ePOST,
+    ePUT,
+    eDELETE,
+    eTRACE,
+    eCONNECT
+};
+
+enum class HTTP_VERSION {
+    eUNKNOWN,
+    eHTTP10,
+    eHTTP11,
+    eHTTP20
+};
 
 class HttpRequest {
+public:
+    HttpRequest(std::shared_ptr<TcpSocket> socket);
+    ~HttpRequest();
 
+    void setMethod(std::string method);
+    HTTP_METHOD getMethod() const;
+    std::string getMethodStr() const;
+
+    void setURI(std::string uri);
+    std::string getURI() const;
+
+    void setHttpVersion(std::string version);
+    HTTP_VERSION getVersion() const;
+    std::string getVersionStr() const;
+
+    void setHeader(std::string field, std::string value);
+    std::map<std::string, std::string> getHeaders();
+
+    void setRawBody(std::string body);
+    std::string getRawBody();
+
+    const std::shared_ptr<TcpSocket> getSocket() const;
+
+    friend std::ostream &operator<<(std::ostream &os, const HttpRequest &request) {
+        return request.write(os);
+    }
+
+private:
+    std::shared_ptr<TcpSocket> m_socket;
+
+    std::string m_methodStr;
+    std::string m_versionStr;
+
+    HTTP_METHOD m_method;
+    HTTP_VERSION m_version;
+    std::string m_uri;
+
+    std::string m_rawBody;
+
+    std::map<std::string, std::string> m_headerMap;
+
+    std::ostream &write(std::ostream &os) const;
 };
 
 
