@@ -62,11 +62,14 @@ HttpRequest HttpRequestHandler::parseIncomingData(HttpRequest &request, std::str
         parseHeaderLine(*lineIt, request);
     }
 
-    std::string body;
-    for (; lineIt != lines.end(); ++lineIt) {
-        body.append(*lineIt).append("\n");
+    if (HTTP_METHOD::ePOST == request.getMethod() ||
+        HTTP_METHOD::ePUT == request.getMethod()) {
+        std::string body;
+        for (; lineIt != lines.end(); ++lineIt) {
+            body.append(*lineIt).append("\n");
+        }
+        request.setRawBody(body);
     }
-    request.setRawBody(body);
 
     return request;
 }
@@ -92,6 +95,7 @@ void HttpRequestHandler::parseRequestLine(std::string &requestLine, HttpRequest 
 void HttpRequestHandler::parseHeaderLine(std::string &headerLine, HttpRequest &request)
 {
     std::smatch match;
+    // TODO: make below regex more selective over header fields and values
     bool res = std::regex_match(headerLine, match, std::regex(R"regex(^(.+):\s(.+)\r$)regex"));
     if (!res) {
         // TODO: throw exception

@@ -7,6 +7,7 @@
 
 #include <regex>
 
+#include "../HttpCommon.h"
 #include "../Tcp/TcpListener.h"
 #include "../HttpRequest.h"
 
