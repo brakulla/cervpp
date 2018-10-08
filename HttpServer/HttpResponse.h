@@ -13,16 +13,20 @@
 #include <memory>
 #include <bits/shared_ptr.h>
 
+#include <chrono>
+#include <iomanip>
+
 #include "Tcp/TcpSocket.h"
 #include "HttpRequest.h"
+#include "HttpCommon.h"
 
 class HttpResponse {
 public:
     explicit HttpResponse(const HttpRequest &request);
-    ~HttpResponse();
+    ~HttpResponse() = default;
 
     void status(int statusCode);
-    void setHeader(std::string field, std::string value);
+    void setHeader(const std::string &field, const std::string &value);
     void send();
 
     friend std::ostream &operator<<(std::ostream &os, const HttpResponse &response) {
@@ -39,7 +43,6 @@ private:
     HTTP_VERSION m_version;
 
     int m_status;
-    std::string m_statusStr;
     std::map<std::string, std::string> m_headerMap;
     std::string m_rawBody;
 

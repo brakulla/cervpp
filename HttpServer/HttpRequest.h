@@ -14,26 +14,9 @@
 #include <memory>
 #include <bits/shared_ptr.h>
 
+#include "HttpCommon.h"
+
 #include "Tcp/TcpSocket.h"
-
-enum class HTTP_METHOD {
-    eUNKNOWN,
-    eOPTIONS,
-    eGET,
-    eHEAD,
-    ePOST,
-    ePUT,
-    eDELETE,
-    eTRACE,
-    eCONNECT
-};
-
-enum class HTTP_VERSION {
-    eUNKNOWN,
-    eHTTP10,
-    eHTTP11,
-    eHTTP20
-};
 
 class HttpRequest {
 public:
@@ -51,11 +34,13 @@ public:
     HTTP_VERSION getVersion() const;
     std::string getVersionStr() const;
 
-    void setHeader(std::string field, std::string value);
+    void setHeader(const std::string &field, const std::string &value);
     std::map<std::string, std::string> getHeaders();
+    const std::string getHeader(std::string &key);
 
     void setRawBody(std::string body);
     std::string getRawBody();
+
 
     const std::shared_ptr<TcpSocket> getSocket() const;
 

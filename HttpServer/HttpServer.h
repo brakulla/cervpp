@@ -9,9 +9,14 @@
 #include <thread>
 #include <unistd.h>
 
+#include <map>
+
 #include "Listener/HttpRequestHandler.h"
 #include "HttpRequest.h"
 #include "HttpResponse.h"
+
+#include "Controllers/IController.h"
+#include "Controllers/DefaultController.h"
 
 class HttpServer {
 public:
@@ -19,11 +24,14 @@ public:
     ~HttpServer();
 
     void Listen(int port);
-    void RegisterController(std::string path/*, IHttpController*/);
+    void RegisterController(const std::string &path, std::shared_ptr<IController>);
 
 private:
     HttpRequestHandler requestHandler;
+    std::map<std::string, std::shared_ptr<IController>> m_controllerMap;
 
+private:
+    std::shared_ptr<IController> getController(const std::string &path);
 };
 
 

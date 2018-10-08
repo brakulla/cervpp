@@ -16,27 +16,23 @@ HttpRequest::~HttpRequest()
 
 void HttpRequest::setMethod(std::string method)
 {
-    m_methodStr = method;
-    if ("OPTIONS" == method)
-        m_method = HTTP_METHOD::eOPTIONS;
-    else if ("GET" == method)
-        m_method = HTTP_METHOD::eGET;
-    else if ("HEAD" == method)
-        m_method = HTTP_METHOD::eHEAD;
-    else if ("POST" == method)
-        m_method = HTTP_METHOD::ePOST;
-    else if ("PUT" == method)
-        m_method = HTTP_METHOD::ePUT;
-    else if ("DELETE" == method)
-        m_method = HTTP_METHOD::eDELETE;
-    else if ("TRACE" == method)
-        m_method = HTTP_METHOD::eTRACE;
-    else if ("CONNECT" == method)
-        m_method = HTTP_METHOD::eCONNECT;
-    else {
-        m_method = HTTP_METHOD::eUNKNOWN;
-        m_methodStr = "UNKNOWN_METHOD";
+    for (auto methodEl: HTTP_METHOD_STR) {
+        if (methodEl.second == method) {
+            m_method = methodEl.first;
+            return;
+        }
     }
+    m_method = HTTP_METHOD::eUNKNOWN;
+}
+
+HTTP_METHOD HttpRequest::getMethod() const
+{
+    return m_method;
+}
+
+std::string HttpRequest::getMethodStr() const
+{
+    return HTTP_METHOD_STR.at(m_method);
 }
 
 void HttpRequest::setURI(std::string uri)
@@ -46,27 +42,13 @@ void HttpRequest::setURI(std::string uri)
 
 void HttpRequest::setHttpVersion(std::string version)
 {
-    m_versionStr = version;
-    if ("HTTP/1.0" == version)
-        m_version = HTTP_VERSION::eHTTP10;
-    else if ("HTTP/1.1" == version)
-        m_version = HTTP_VERSION::eHTTP11;
-    else if ("HTTP/2.0" == version)
-        m_version = HTTP_VERSION::eHTTP20;
-    else {
-        m_version = HTTP_VERSION::eUNKNOWN;
-        m_versionStr = "UNKNOWN_METHOD";
+    for (auto versionEl: HTTP_VERSION_STR) {
+        if (versionEl.second == version) {
+            m_version = versionEl.first;
+            return;
+        }
     }
-}
-
-HTTP_METHOD HttpRequest::getMethod() const
-{
-    return m_method;
-}
-
-std::string HttpRequest::getURI() const
-{
-    return m_uri;
+    m_version = HTTP_VERSION::eUNKNOWN;
 }
 
 HTTP_VERSION HttpRequest::getVersion() const
@@ -74,10 +56,30 @@ HTTP_VERSION HttpRequest::getVersion() const
     return m_version;
 }
 
-void HttpRequest::setHeader(std::string field, std::string value)
+std::string HttpRequest::getVersionStr() const
+{
+    return HTTP_VERSION_STR.at(m_version);
+}
+
+std::string HttpRequest::getURI() const
+{
+    return m_uri;
+}
+
+void HttpRequest::setHeader(const std::string &field, const std::string &value)
 {
     if (m_headerMap.end() == m_headerMap.find(field))
         m_headerMap[field] = value;
+}
+
+std::map<std::string, std::string> HttpRequest::getHeaders()
+{
+    return m_headerMap;
+}
+
+const std::string HttpRequest::getHeader(std::string &key)
+{
+    return m_headerMap.at(key);
 }
 
 std::ostream &HttpRequest::write(std::ostream &os) const
@@ -94,11 +96,6 @@ std::ostream &HttpRequest::write(std::ostream &os) const
     return os;
 }
 
-std::map<std::string, std::string> HttpRequest::getHeaders()
-{
-    return m_headerMap;
-}
-
 void HttpRequest::setRawBody(std::string body)
 {
     m_rawBody = body; // TODO: check for clang-tidy warning
@@ -107,16 +104,6 @@ void HttpRequest::setRawBody(std::string body)
 std::string HttpRequest::getRawBody()
 {
     return m_rawBody;
-}
-
-std::string HttpRequest::getMethodStr() const
-{
-    return m_methodStr;
-}
-
-std::string HttpRequest::getVersionStr() const
-{
-    return m_versionStr;
 }
 
 const std::shared_ptr<TcpSocket> HttpRequest::getSocket() const
