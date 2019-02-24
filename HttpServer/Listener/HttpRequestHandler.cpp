@@ -39,8 +39,6 @@ HttpRequest HttpRequestHandler::GetNextRequest()
     std::cout << "Incoming data:\n" << incomingData << "\n";
     HttpRequest request(newSocket);
     parseIncomingData(request, incomingData);
-//    m_tcpListener->CloseConnection(newSocket); // TODO: this should be handled by HttpResponseHandler send function
-
     std::cout << "Request:\n" << request;
 
     return request;

@@ -27,6 +27,8 @@ public:
     void RegisterController(const std::string &path, std::shared_ptr<IController>);
 
 private:
+    std::atomic_bool m_running;
+
     HttpRequestHandler requestHandler;
     std::map<std::string, std::shared_ptr<IController>> m_controllerMap;
 

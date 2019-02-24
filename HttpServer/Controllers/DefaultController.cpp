@@ -14,10 +14,10 @@ DefaultController::~DefaultController()
 
 }
 
-void DefaultController::NewRequestReceived(HttpRequest &request)
+void DefaultController::ProcessRequest(HttpRequest &request)
 {
     HttpResponse response(request);
     response.status(404);
-    response.setHeader("Connection", "closed");
+    response.setHeader("Connection", "keep-alive");
     response.send();
 }

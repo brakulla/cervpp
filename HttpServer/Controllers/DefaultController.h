@@ -13,7 +13,7 @@ public:
     DefaultController();
     ~DefaultController() override;
 
-    void NewRequestReceived(HttpRequest &request) override;
+    void ProcessRequest(HttpRequest &request) override;
 };
 
 

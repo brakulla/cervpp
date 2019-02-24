@@ -5,34 +5,36 @@
 #include "HttpServer.h"
 
 HttpServer::HttpServer()
-= default;
+{
+    m_running = false;
+}
 
 HttpServer::~HttpServer()
-= default;
+{
+    m_running = false;
+}
 
 void HttpServer::Listen(int port)
 {
-    HttpResponse *response;
+    m_running = true;
+
     requestHandler.Listen(port, 5);
-    while (true) {
+    while (m_running) {
         HttpRequest request = requestHandler.GetNextRequest();
-//        response = new HttpResponse(request);
-        // TODO: use a controller here
 
         std::shared_ptr<IController> controller = getController(request.getURI());
-        controller->NewRequestReceived(request);
-
-//        response->status(200);
-//        response->send();
-//        response->setHeader("Connection", "Closed");
+        controller->ProcessRequest(request);
+//        std::shared_ptr<HttpResponse> response = controller->ProcessRequest(request);
+//        if (response->isPersistant())
+//        {
+//             TODO: add to connection pool
+//        }
     }
-
-    delete response;
 }
 
 void HttpServer::RegisterController(const std::string &path, std::shared_ptr<IController> controller)
 {
-    m_controllerMap[path] = controller;
+    m_controllerMap[path] = std::move(controller);
 }
 
 std::shared_ptr<IController> HttpServer::getController(const std::string &path)
@@ -40,7 +42,6 @@ std::shared_ptr<IController> HttpServer::getController(const std::string &path)
     if (m_controllerMap.end() != m_controllerMap.find(path)) {
         return m_controllerMap[path];
     }
-    std::shared_ptr<IController> defController(new DefaultController);
+    std::shared_ptr<IController> defController(new DefaultController); // returns 404 for every result
     return defController;
-    // TODO: return a default controller with 404 for all requests
 }

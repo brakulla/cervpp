@@ -19,7 +19,7 @@ public:
     IController();
     virtual ~IController();
 
-    virtual void NewRequestReceived(HttpRequest &request) = 0;
+    virtual void ProcessRequest(HttpRequest &request) = 0;
 
 private:
 };
