@@ -1,6 +1,7 @@
-//
-// Created by brakulla on 18.02.2019.
-//
+/*
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE', which is part of this source code package.
+ */
 
 #ifndef CERVPP_HTTPREQUEST_H
 #define CERVPP_HTTPREQUEST_H
@@ -16,19 +17,19 @@ class HttpRequest {
   HttpRequest() = default;
 
   void setMethod(std::string method);
-  void setPath(std::string path);
+  void setURI(std::string uri);
   void addHeader(std::string key, std::string value);
   void setRawBody(std::string body);
   void setVersion(std::string version);
 
-  std::string getType() const;
-  std::string getPath() const;
+  std::string getMethod() const;
+  std::string getURI() const;
   std::map<std::string, std::string> getHeaders() const;
   std::string getHeader(std::string key) const;
 
  private:
   std::string _method;
-  std::string _path;
+  std::string _uri;
   std::map<std::string, std::string> _headers;
   std::string _body;
   std::string _version;

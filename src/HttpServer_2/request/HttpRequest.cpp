@@ -11,8 +11,8 @@
 void HttpRequest::setMethod(std::string method) {
   _method = method;
 }
-void HttpRequest::setPath(const std::string path) {
-  _path = path;
+void HttpRequest::setURI(std::string uri) {
+  _uri = uri;
 }
 void HttpRequest::addHeader(const std::string key, const std::string value) {
   _headers.insert(std::make_pair(key, value));
@@ -23,11 +23,11 @@ void HttpRequest::setRawBody(std::string body) {
 void HttpRequest::setVersion(std::string version) {
   _version = version;
 }
-std::string HttpRequest::getType() const {
+std::string HttpRequest::getMethod() const {
   return _method;
 }
-std::string HttpRequest::getPath() const {
-  return _path;
+std::string HttpRequest::getURI() const {
+  return _uri;
 }
 std::map<std::string, std::string> HttpRequest::getHeaders() const {
   return _headers;

@@ -1,6 +1,7 @@
-//
-// Created by brakulla on 18.02.2019.
-//
+/*
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE', which is part of this source code package.
+ */
 
 #ifndef CERVPP_CONTROLLERHANDLER_H
 #define CERVPP_CONTROLLERHANDLER_H

@@ -30,7 +30,7 @@ void RequestParser::parseRequestLine(std::shared_ptr<HttpRequest> req, std::vect
     return;
 
   req->setMethod(match[1].str());
-  req->setPath(match[2].str());
+  req->setURI(match[2].str());
   req->setVersion(match[3].str());
 }
 void RequestParser::parseHeaders(std::shared_ptr<HttpRequest> req, std::vector<std::string>::iterator line) {

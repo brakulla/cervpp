@@ -13,7 +13,7 @@ ControllerHandler::ControllerHandler() {
 }
 void ControllerHandler::processRequest(std::shared_ptr<HttpRequest> request, std::shared_ptr<HttpResponse> response) {
   for(auto &item: _controllerMap) {
-    if (0 == item.first.find(request->getPath())) {
+    if (0 == item.first.find(request->getURI())) {
       item.second->process(request, response);
       return;
     }
