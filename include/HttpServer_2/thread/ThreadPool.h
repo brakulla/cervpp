@@ -11,14 +11,13 @@
 
 #include "Thread.h"
 
-class ThreadPool
-{
-public:
-    ThreadPool();
+class ThreadPool {
+ public:
+  ThreadPool();
 
-    std::shared_ptr<Thread> getNewThread(std::function<void> func);
+  std::shared_ptr<Thread> getNewThread(std::function<void> func);
 
-private:
+ private:
 };
 
 #endif //CERVPP_THREADPOOL_H

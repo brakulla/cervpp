@@ -9,8 +9,7 @@
 
 #include "IController.h"
 
-class StaticFileController : public IController
-{
+class StaticFileController : public IController {
 
 };
 

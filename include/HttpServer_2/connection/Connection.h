@@ -5,8 +5,7 @@
 #ifndef CERVPP_TCPCONNECTION_H
 #define CERVPP_TCPCONNECTION_H
 
-class Connection
-{
+class Connection {
 
 };
 

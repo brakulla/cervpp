@@ -9,10 +9,9 @@
 
 #include "Connection.h"
 
-class HttpResponse
-{
-public:
-    HttpResponse(std::shared_ptr<Connection> conn);
+class HttpResponse {
+ public:
+  HttpResponse(std::shared_ptr<Connection> conn);
 };
 
 #endif //CERVPP_HTTPRESPONSE_H

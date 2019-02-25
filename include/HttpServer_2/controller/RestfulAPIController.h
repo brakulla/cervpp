@@ -9,8 +9,7 @@
 
 #include "IController.h"
 
-class RestfulAPIController
-{
+class RestfulAPIController {
 
 };
 

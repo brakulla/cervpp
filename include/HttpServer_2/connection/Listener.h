@@ -14,7 +14,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include <brutils/queue_pc.h>
+#include <brutils/queue_pc.hpp>
 
 class Listener {
  public:

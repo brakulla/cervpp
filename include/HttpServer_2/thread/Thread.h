@@ -5,8 +5,7 @@
 #ifndef CERVPP_THREAD_H
 #define CERVPP_THREAD_H
 
-class Thread
-{
+class Thread {
 
 };
 

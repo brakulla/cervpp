@@ -5,8 +5,7 @@
 #ifndef CERVPP_HTTPREQUEST_H
 #define CERVPP_HTTPREQUEST_H
 
-class HttpRequest
-{
+class HttpRequest {
 
 };
 

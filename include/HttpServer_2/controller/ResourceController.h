@@ -9,8 +9,7 @@
 
 #include "IController.h"
 
-class ResourceController : public IController
-{
+class ResourceController : public IController {
 
 };
 
