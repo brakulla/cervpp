@@ -21,10 +21,14 @@ include_directories(
         include/HttpServer_2/request
         include/HttpServer_2/response
         include/HttpServer_2/thread
+
+        ../brutils/include
 )
 
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(libs/json)
-
-add_executable(cervpp ${SRCS} src/HttpServer_2/connection/ConfigurationHandler.cpp)
-target_link_libraries(cervpp PRIVATE nlohmann_json::nlohmann_json)
+link_directories(../brutils)
+add_executable(cervpp ${SRCS} src/HttpServer_2/connection/ConnectionHandler.cpp)
+target_link_libraries(cervpp
+        PRIVATE nlohmann_json::nlohmann_json
+        PRIVATE brutils)

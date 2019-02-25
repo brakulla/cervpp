@@ -14,9 +14,7 @@
 class Configuration {
 public:
     Configuration(const Configuration &) = delete;
-
     Configuration(Configuration &&) = delete;
-
     void operator=(const Configuration &) = delete;
 
     static Configuration &get() {
@@ -25,7 +23,6 @@ public:
     }
 
     void parseFile(std::ifstream &inStream);
-
     std::string getValue(std::string key);
 
 private:

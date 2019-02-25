@@ -11,17 +11,28 @@ HttpServer::HttpServer()
 
 }
 
+HttpServer::~HttpServer()
+{
+    _connectionHandler->stopListener();
+}
+
 void HttpServer::StartServer(int port)
 {
-    // start connection handler for new incoming connections
-    // connect new incoming connection to slot
+    _connectionHandler->startListener(port);
+    _connectionHandler->connect([&](std::shared_ptr<Connection> newConnection) {
+        newIncomingConnection(newConnection);
+    });
 }
 
 void HttpServer::newIncomingConnection(std::shared_ptr<Connection> newConnection)
 {
-    // get new thread from thread pool
-    // on newly created thread
-        // give new connection to RequestParser and get new HttpRequest object
-        // initialize new HttpResponse object with the connection
-        // initialize new controller based on requester and call its relevant function
+    auto thread = _threadPool->getNewThread([&](){
+        processNewRequest(newConnection);
+    });
+}
+void HttpServer::processNewRequest(std::shared_ptr<Connection> newConnection)
+{
+    auto request = _requestParser->parse(newConnection);
+    auto response = std::make_shared<HttpResponse>(newConnection);
+    _controllerHandler->processRequest(request, response);
 }

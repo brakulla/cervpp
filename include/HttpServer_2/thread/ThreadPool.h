@@ -16,7 +16,7 @@ class ThreadPool
 public:
     ThreadPool();
 
-    std::shared_ptr<Thread> GetNewThread(std::function<Thread> func);
+    std::shared_ptr<Thread> getNewThread(std::function<void> func);
 
 private:
 };

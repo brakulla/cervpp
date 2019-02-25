@@ -11,6 +11,7 @@
 
 class HttpResponse
 {
+public:
     HttpResponse(std::shared_ptr<Connection> conn);
 };
 
