@@ -11,7 +11,7 @@
 class DefaultController : public IController {
  public:
   DefaultController() : IController(ControllerType::DefaultController) {}
-  ~DefaultController() = default;
+  ~DefaultController() override = default;
 
   void process(std::shared_ptr<HttpRequest> req,
                std::shared_ptr<HttpResponse> resp) override;

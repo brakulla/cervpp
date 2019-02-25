@@ -11,7 +11,7 @@
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 
-enum ControllerType {
+enum class ControllerType {
   None,                   // not initialized
   DefaultController,      // default controller that returns 404 to all requests
   StaticFileController,   // returns the file named requested by the path
@@ -21,8 +21,8 @@ enum ControllerType {
 
 class IController {
  public:
-  IController(const ControllerType type) : _type(type) {}
-  ~IController() = default;
+  explicit IController(const ControllerType type) : _type(type) {}
+  virtual ~IController() = default;
   ControllerType getType() const {
     return _type;
   }

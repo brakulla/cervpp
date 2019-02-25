@@ -10,6 +10,7 @@
 #include <queue>
 #include <thread>
 #include <atomic>
+#include <errno.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>

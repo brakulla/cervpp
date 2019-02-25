@@ -16,10 +16,12 @@ HttpServer::~HttpServer() {
     _connectionHandler->stopListener();
 }
 void HttpServer::StartServer(int port) {
+  printf("Starting server on port %d\n", port);
   _connectionHandler->startListener(port);
   _connectionHandler->connect([&](std::shared_ptr<Connection> newConnection) {
     newIncomingConnection(newConnection);
   });
+  printf("Server started\n", port);
 }
 void HttpServer::registerController(std::string path, std::shared_ptr<IController> controller) {
   _controllerHandler->registerController(path, controller);

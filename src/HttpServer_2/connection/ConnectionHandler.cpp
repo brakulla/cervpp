@@ -22,6 +22,7 @@ ConnectionHandler::~ConnectionHandler() {
 void ConnectionHandler::startListener(int &port) {
   _running = true;
   _listener.init(port);
+  _listener.start();
   _thread = std::thread(&ConnectionHandler::listener, this);
 }
 
@@ -35,9 +36,11 @@ void ConnectionHandler::connect(std::function<void(std::shared_ptr<Connection>)>
 }
 
 void ConnectionHandler::listener() {
+  printf("ConnectionHandler :: Starting listener thread\n");
   while (_running) {
     int sockFd = _listener.getNextConnection();
     auto connection = std::make_shared<Connection>(sockFd);
+    printf("ConnectionHandler :: New connection received\n");
     _signal.emit(connection);
   }
 }

@@ -11,6 +11,7 @@ std::shared_ptr<HttpRequest> RequestParser::parse(std::shared_ptr<Connection> ne
   std::vector<std::string> lines;
   std::string incomingData;
   *newConnection >> incomingData;
+  printf("Incoming data: %s\n", incomingData.c_str());
   brutils::string_utils::split_string(incomingData, lines, '\n');
   if (lines.empty())
     return nullptr;

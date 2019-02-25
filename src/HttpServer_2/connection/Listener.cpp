@@ -4,6 +4,7 @@
  * Description
  */
 
+#include <cstring>
 #include "Listener.h"
 
 void Listener::init(int &port) { // TODO: change type to uint16_t
@@ -21,6 +22,9 @@ void Listener::init(int &port) { // TODO: change type to uint16_t
 
   if (0 > bind(_serverFd, (struct sockaddr *) &_serverAddr, sizeof(_serverAddr)))
     throw std::runtime_error("socket bind failed");
+
+  if (0 > listen(_serverFd, 5))
+    throw std::runtime_error("listen failed");
 }
 
 void Listener::start() {
@@ -43,10 +47,15 @@ int Listener::getNextConnection() {
 
 void Listener::run() {
   while (_running) {
-    socklen_t addrLength = sizeof(struct sockaddr_in);
-    int newSocket = accept(_serverFd, (struct sockaddr *) &_serverAddr, &addrLength);
+    printf("Listener :: Listener thread started\n");
+    struct sockaddr_in client{};
+    socklen_t addrLength = sizeof(client);
+    int newSocket = accept(_serverFd, (struct sockaddr*)&client, &addrLength);
+    printf("Listener :: New connection received\n");
     if (0 > newSocket)
-      throw std::runtime_error("Socket failed");
+      throw std::runtime_error("Socket failed: " + std::string(strerror(errno)));
+
     _queue.push(newSocket);
+    printf("Listener :: Pushed to queue\n");
   }
 }
