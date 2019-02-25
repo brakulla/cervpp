@@ -27,6 +27,7 @@ void ConnectionHandler::startListener(int &port) {
 
 void ConnectionHandler::stopListener() {
   _running = false;
+  _thread.join();
 }
 
 void ConnectionHandler::connect(std::function<void(std::shared_ptr<Connection>)> func) {

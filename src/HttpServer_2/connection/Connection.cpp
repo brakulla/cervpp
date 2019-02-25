@@ -4,6 +4,8 @@
  * Description
  */
 
+#include <connection/Connection.h>
+
 #include "Connection.h"
 
 #define INCOMING_DATA_SIZE 1024
@@ -14,10 +16,22 @@ Connection::Connection(int socketFd) {
 Connection::~Connection() {
   ::close(_socketFd);
 }
-Connection &Connection::operator>>(std::string &output) {
+Connection &Connection::operator<<(const std::string &input) {
   if (-1 == _socketFd)
     throw std::runtime_error("Socket not open");
-  std::string data;
+  ::send(_socketFd, input.c_str(), input.size(), 0);
+  return *this;
+}
+Connection &Connection::operator<<(const int &input) {
+  if (-1 == _socketFd)
+    throw std::runtime_error("Socket not open");
+  auto str = std::to_string(input);;
+  ::send(_socketFd, str.c_str(), str.size(), 0);
+  return *this;
+}
+Connection &Connection::operator>>(std::string &output){
+  if (-1 == _socketFd)
+    throw std::runtime_error("Socket not open");
   char incomingData[INCOMING_DATA_SIZE];
   ssize_t incomingDataSize;
   do {
@@ -26,9 +40,6 @@ Connection &Connection::operator>>(std::string &output) {
   } while (incomingDataSize == sizeof(incomingData));
   return *this;
 }
-Connection &Connection::operator<<(std::string &input) {
-  if (-1 == _socketFd)
-    throw std::runtime_error("Socket not open");
+void Connection::write(const std::string &input) {
   ::send(_socketFd, input.c_str(), input.size(), 0);
-  return *this;
 }

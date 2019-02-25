@@ -8,7 +8,7 @@
 
 void Listener::init(int &port) { // TODO: change type to uint16_t
   _serverFd = socket(AF_INET, SOCK_STREAM, 0);
-  if (0 != _serverFd)
+  if (0 == _serverFd)
     throw std::runtime_error("Socket failed");
 
   int opt = 1;

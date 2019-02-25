@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 3.12)
 project(cervpp)
 set(CMAKE_CXX_STANDARD 17)
 
+add_definitions(-DPROJECT_VERSION="\\"0.0.2a\\"")
+
 file(GLOB SRCS
-        src/*[.c.cc.cpp]
+        main.cpp
         src/HttpServer_2/*[.c.cc.cpp]
         src/HttpServer_2/configuration/*[.c.cc.cpp]
         src/HttpServer_2/connection/*[.c.cc.cpp]
@@ -27,8 +29,9 @@ include_directories(
 
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(libs/json)
-link_directories(../brutils)
-add_executable(cervpp ${SRCS} src/HttpServer_2/connection/ConnectionHandler.cpp)
+link_directories(../brutils/lib)
+add_executable(cervpp ${SRCS})
 target_link_libraries(cervpp
         PRIVATE nlohmann_json::nlohmann_json
-        PRIVATE brutils)
+        PRIVATE brutils
+        PUBLIC pthread)

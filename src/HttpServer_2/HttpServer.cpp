@@ -1,3 +1,5 @@
+#include <memory>
+
 //
 // Created by brakulla on 2/24/19.
 //
@@ -7,9 +9,11 @@
 #include "HttpServer.h"
 
 HttpServer::HttpServer() {
+  _connectionHandler = std::make_shared<ConnectionHandler>();
 }
 HttpServer::~HttpServer() {
-  _connectionHandler->stopListener();
+  if (_connectionHandler)
+    _connectionHandler->stopListener();
 }
 void HttpServer::StartServer(int port) {
   _connectionHandler->startListener(port);
@@ -21,12 +25,14 @@ void HttpServer::registerController(std::string path, std::shared_ptr<IControlle
   _controllerHandler->registerController(path, controller);
 }
 void HttpServer::newIncomingConnection(std::shared_ptr<Connection> newConnection) {
-  auto thread = _threadPool->getNewThread([&]() {
-    processNewRequest(newConnection);
-  });
+//  auto thread = _threadPool->getNewThread([&]() {
+//    processNewRequest(newConnection);
+//  });
+  processNewRequest(newConnection);
 }
 void HttpServer::processNewRequest(std::shared_ptr<Connection> newConnection) {
   auto request = _requestParser->parse(newConnection);
   auto response = std::make_shared<HttpResponse>(newConnection, request);
+  response->header("Connection", "close"); // TODO: support for keep-alive
   _controllerHandler->processRequest(request, response);
 }

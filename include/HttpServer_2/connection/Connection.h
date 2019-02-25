@@ -12,13 +12,18 @@
 #include <unistd.h>
 #include <stdexcept>
 
+#include <string>
+#include <sstream>
+
 class Connection {
  public:
   explicit Connection(int socketFd);
   ~Connection();
 
+  Connection &operator<<(const std::string &input);
+  Connection &operator<<(const int &input);
   Connection &operator>>(std::string &output);
-  Connection &operator<<(std::string &input);
+  void write(const std::string &input);
 
  private:
   int _socketFd;

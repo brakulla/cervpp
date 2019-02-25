@@ -22,6 +22,7 @@ std::shared_ptr<HttpRequest> RequestParser::parse(std::shared_ptr<Connection> ne
     parseHeaders(req, lineIt);
   if (lineIt != lines.end())
     parseBody(req, lineIt);
+  return req;
 }
 void RequestParser::parseRequestLine(std::shared_ptr<HttpRequest> req, std::vector<std::string>::iterator line) {
   std::smatch match;
