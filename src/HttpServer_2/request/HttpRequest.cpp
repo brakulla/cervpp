@@ -8,8 +8,8 @@
 
 #include "HttpRequest.h"
 
-void HttpRequest::setType(const std::string type) {
-  _type = type;
+void HttpRequest::setMethod(std::string method) {
+  _method = method;
 }
 void HttpRequest::setPath(const std::string path) {
   _path = path;
@@ -17,8 +17,14 @@ void HttpRequest::setPath(const std::string path) {
 void HttpRequest::addHeader(const std::string key, const std::string value) {
   _headers.insert(std::make_pair(key, value));
 }
+void HttpRequest::setRawBody(std::string body) {
+  _body = body;
+}
+void HttpRequest::setVersion(std::string version) {
+  _version = version;
+}
 std::string HttpRequest::getType() const {
-  return _type;
+  return _method;
 }
 std::string HttpRequest::getPath() const {
   return _path;

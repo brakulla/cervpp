@@ -15,9 +15,11 @@ class HttpRequest {
  public:
   HttpRequest() = default;
 
-  void setType(std::string type);
+  void setMethod(std::string method);
   void setPath(std::string path);
   void addHeader(std::string key, std::string value);
+  void setRawBody(std::string body);
+  void setVersion(std::string version);
 
   std::string getType() const;
   std::string getPath() const;
@@ -25,9 +27,11 @@ class HttpRequest {
   std::string getHeader(std::string key) const;
 
  private:
-  std::string _type;
+  std::string _method;
   std::string _path;
   std::map<std::string, std::string> _headers;
+  std::string _body;
+  std::string _version;
 };
 
 #endif //CERVPP_HTTPREQUEST_H
