@@ -12,6 +12,7 @@
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 #include "IController.h"
+#include "DefaultController.h"
 
 class ControllerHandler {
  public:
@@ -27,6 +28,7 @@ class ControllerHandler {
 
  private:
   std::map<std::string, std::shared_ptr<IController>> _controllerMap;
+  std::shared_ptr<IController> _defaultController;
 };
 
 #endif //CERVPP_CONTROLLERHANDLER_H

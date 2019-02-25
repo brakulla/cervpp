@@ -11,7 +11,7 @@
 
 class HttpResponse {
  public:
-  HttpResponse(std::shared_ptr<Connection> conn);
+  HttpResponse(std::shared_ptr<Connection> conn, std::shared_ptr<HttpRequest> req);
 };
 
 #endif //CERVPP_HTTPRESPONSE_H
