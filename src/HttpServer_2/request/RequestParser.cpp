@@ -11,8 +11,11 @@ std::shared_ptr<HttpRequest> RequestParser::parse(std::shared_ptr<Connection> ne
   std::vector<std::string> lines;
   std::string incomingData;
   *newConnection >> incomingData;
-  printf("Incoming data: %s\n", incomingData.c_str());
-  brutils::string_utils::split_string(incomingData, lines, '\n');
+  std::string debug = incomingData;
+  std::replace(debug.begin(), debug.end(), '\r', '_');
+  std::replace(debug.begin(), debug.end(), '\n', '-');
+  printf("Incoming data:\n%s\n", debug.c_str());
+  brutils::split_string(incomingData, lines, "\r\n");
   if (lines.empty())
     return nullptr;
 
@@ -27,7 +30,7 @@ std::shared_ptr<HttpRequest> RequestParser::parse(std::shared_ptr<Connection> ne
 }
 void RequestParser::parseRequestLine(std::shared_ptr<HttpRequest> req, std::vector<std::string>::iterator line) {
   std::smatch match;
-  bool res = std::regex_match(*line++, match, std::regex(R"regex(^(\w+)\s(.+)\s(\w+\/[0-9]\.[0-9])\r$)regex"));
+  bool res = std::regex_match(*line++, match, std::regex(R"regex(^(\w+)\s(.+)\s(\w+\/[0-9]\.[0-9])$)regex"));
   if (!res || 4 != match.size())
     return;
 
@@ -36,9 +39,9 @@ void RequestParser::parseRequestLine(std::shared_ptr<HttpRequest> req, std::vect
   req->setVersion(match[3].str());
 }
 void RequestParser::parseHeaders(std::shared_ptr<HttpRequest> req, std::vector<std::string>::iterator line) {
-  for(; *line != "\r"; ++line) {
+  for(; !line->empty(); ++line) {
     std::smatch match;
-    bool res = std::regex_match(*line++, match, std::regex(R"regex(^(.+):\s(.+)\r$)regex"));
+    bool res = std::regex_match(*line++, match, std::regex(R"regex(^(.+):\s(.+)$)regex"));
     if (!res || 3 != match.size())
       return;
     req->addHeader(match[1].str(), match[2].str());
@@ -47,8 +50,9 @@ void RequestParser::parseHeaders(std::shared_ptr<HttpRequest> req, std::vector<s
 }
 void RequestParser::parseBody(std::shared_ptr<HttpRequest> req, std::vector<std::string>::iterator line) {
   std::string body;
-  for(; *line != "\r"; ++line) {
+  for(; !line->empty(); ++line) {
     body.append(*line);
   }
   req->setRawBody(body);
+  ++line;
 }

@@ -10,6 +10,7 @@
 
 HttpServer::HttpServer() {
   _connectionHandler = std::make_shared<ConnectionHandler>();
+  _controllerHandler = std::make_shared<ControllerHandler>();
 }
 HttpServer::~HttpServer() {
   if (_connectionHandler)

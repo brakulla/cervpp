@@ -7,6 +7,7 @@
 #include "ControllerHandler.h"
 
 ControllerHandler::ControllerHandler() {
+  _defaultController = std::static_pointer_cast<IController>(std::make_shared<DefaultController>());
   std::shared_ptr<IController> def(new DefaultController);
 }
 void ControllerHandler::processRequest(std::shared_ptr<HttpRequest> request, std::shared_ptr<HttpResponse> response) {

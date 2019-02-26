@@ -36,7 +36,7 @@ Connection &Connection::operator>>(std::string &output){
   ssize_t incomingDataSize;
   do {
     incomingDataSize = ::recv(_socketFd, incomingData, sizeof(incomingData), 0);
-    output.append(incomingData, (unsigned long) incomingData);
+    output.append(incomingData);
   } while (incomingDataSize == sizeof(incomingData));
   return *this;
 }
