@@ -10,8 +10,8 @@
 
 #define INCOMING_DATA_SIZE 1024
 
-Connection::Connection(int socketFd) {
-  _socketFd = socketFd;
+Connection::Connection(int socketFd)
+    : _socketFd(socketFd), _type(ConnectionType::KEEP_ALIVE), _maxConnectionCount(100), _keepAliveTimeout(5) {
 }
 Connection::~Connection() {
   ::close(_socketFd);
@@ -20,6 +20,7 @@ Connection &Connection::operator<<(const std::string &input) {
   if (-1 == _socketFd)
     throw std::runtime_error("Socket not open");
   ::send(_socketFd, input.c_str(), input.size(), 0);
+  printf("Outgoind data:\n%s\n", input.c_str());
   return *this;
 }
 Connection &Connection::operator<<(const int &input) {
@@ -27,9 +28,10 @@ Connection &Connection::operator<<(const int &input) {
     throw std::runtime_error("Socket not open");
   auto str = std::to_string(input);;
   ::send(_socketFd, str.c_str(), str.size(), 0);
+  printf("Outgoind data:\n%d\n", input);
   return *this;
 }
-Connection &Connection::operator>>(std::string &output){
+Connection &Connection::operator>>(std::string &output) {
   if (-1 == _socketFd)
     throw std::runtime_error("Socket not open");
   char incomingData[INCOMING_DATA_SIZE];
@@ -42,4 +44,10 @@ Connection &Connection::operator>>(std::string &output){
 }
 void Connection::write(const std::string &input) {
   ::send(_socketFd, input.c_str(), input.size(), 0);
+}
+ConnectionType Connection::getConnectionType() const {
+  return _type;
+}
+bool Connection::isKeepAlive() const {
+  return _type == ConnectionType::KEEP_ALIVE;
 }

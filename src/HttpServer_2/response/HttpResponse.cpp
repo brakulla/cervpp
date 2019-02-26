@@ -20,11 +20,11 @@ void HttpResponse::contentType(std::string type) {
 void HttpResponse::status(const int status) {
   _status = status;
 }
-void HttpResponse::send(std::string &body) {
+void HttpResponse::send(std::string body) {
   insertContentTypeHeader("text/plain");
   sendResponse(body);
 }
-void HttpResponse::send(nlohmann::json &body) {
+void HttpResponse::sendJson(nlohmann::json &body) {
   insertContentTypeHeader("application/json");
   sendResponse(body.dump(4));
 }

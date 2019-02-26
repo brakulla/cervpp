@@ -27,8 +27,8 @@ class HttpResponse {
   void header(std::string key, std::string value);
   void contentType(std::string type);
   void status(const int status);
-  void send(std::string &body);
-  void send(nlohmann::json &body);
+  void send(std::string body);
+  void sendJson(nlohmann::json &body);
   void render(std::string filePath);
 
  private:

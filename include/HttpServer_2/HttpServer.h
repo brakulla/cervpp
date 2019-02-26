@@ -35,7 +35,7 @@ class HttpServer {
   std::shared_ptr<ControllerHandler> _controllerHandler;
 
  private:
-  void returnDefaultResp(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp);
+  std::shared_ptr<HttpResponse> _test;
 };
 
 #endif //CERVPP_HTTPSERVER_H

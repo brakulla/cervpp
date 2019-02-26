@@ -15,6 +15,11 @@
 #include <string>
 #include <sstream>
 
+enum class ConnectionType {
+  CLOSE,
+  KEEP_ALIVE
+};
+
 class Connection {
  public:
   explicit Connection(int socketFd);
@@ -25,8 +30,14 @@ class Connection {
   Connection &operator>>(std::string &output);
   void write(const std::string &input);
 
+  ConnectionType getConnectionType() const;
+  bool isKeepAlive() const;
+
  private:
   int _socketFd;
+  ConnectionType _type;
+  int _maxConnectionCount;
+  int _keepAliveTimeout; // in seconds
 };
 
 #endif //CERVPP_TCPCONNECTION_H
