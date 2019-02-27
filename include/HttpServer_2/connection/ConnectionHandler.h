@@ -30,6 +30,8 @@ class ConnectionHandler {
   void stop();
   void waitForFinished();
 
+  void pushIdleSocket(int socketFd);
+
   void registerNewConnectionSlot(std::function<void(std::shared_ptr<Connection>)> func);
 
  private:

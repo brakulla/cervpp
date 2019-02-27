@@ -49,7 +49,7 @@ void ConnectionHandler::run() {
 
   while (_running) {
     // TODO: retrieve below timeout from configuration
-    int pollRes = ::poll(socketList, (nfds_t) socketListSize, 5 * 1000);
+    int pollRes = ::poll(socketList, (nfds_t) socketListSize, 1 * 1000);
     if (0 < pollRes) {
       printf("ConnectionHandler :: Error with the sockets!\n");
       break;
@@ -60,6 +60,9 @@ void ConnectionHandler::run() {
     }
   }
 }
+void ConnectionHandler::pushIdleSocket(int socketFd) {
+  // TODO: implement
+}
 void ConnectionHandler::processSockets(struct pollfd *socketList, int &socketListSize) {
   // check server socket first
   if (socketList[0].revents == POLLIN) {
@@ -68,7 +71,7 @@ void ConnectionHandler::processSockets(struct pollfd *socketList, int &socketLis
       printf("ConnectionHandler :: New incoming connection\n");
       struct sockaddr_in client{};
       socklen_t addrLength = sizeof(client);
-      newSocket = accept(_serverFd, (struct sockaddr *) &client, &addrLength);
+      newSocket = ::accept(_serverFd, (struct sockaddr *) &client, &addrLength);
       if (0 < newSocket) {
         int err = errno;
         printf("Error with new incoming connection: %d", err);
