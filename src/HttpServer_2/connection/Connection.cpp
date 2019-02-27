@@ -39,7 +39,7 @@ Connection &Connection::operator>>(std::string &output) {
   do {
     incomingDataSize = ::recv(_socketFd, incomingData, sizeof(incomingData), 0);
     output.append(incomingData);
-  } while (incomingDataSize == sizeof(incomingData));
+  } while (incomingDataSize != sizeof(incomingData));
   return *this;
 }
 void Connection::write(const std::string &input) {
@@ -50,4 +50,14 @@ ConnectionType Connection::getConnectionType() const {
 }
 bool Connection::isKeepAlive() const {
   return _type == ConnectionType::KEEP_ALIVE;
+}
+unsigned long Connection::getKeepAliveMax() const {
+  if (ConnectionType::KEEP_ALIVE == _type)
+    return _maxConnectionCount;
+  return 0;
+}
+unsigned long Connection::getKeepAliveTimeout() const {
+  if (ConnectionType::KEEP_ALIVE == _type)
+    return _keepAliveTimeout;
+  return 0;
 }

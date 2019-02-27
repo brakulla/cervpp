@@ -32,12 +32,14 @@ class Connection {
 
   ConnectionType getConnectionType() const;
   bool isKeepAlive() const;
+  unsigned long getKeepAliveMax() const;
+  unsigned long getKeepAliveTimeout() const;
 
  private:
   int _socketFd;
   ConnectionType _type;
-  int _maxConnectionCount;
-  int _keepAliveTimeout; // in seconds
+  unsigned long _maxConnectionCount;
+  unsigned long _keepAliveTimeout; // in seconds
 };
 
 #endif //CERVPP_TCPCONNECTION_H
