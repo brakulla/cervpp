@@ -14,28 +14,27 @@ HttpServer::HttpServer() {
 }
 HttpServer::~HttpServer() {
   if (_connectionHandler)
-    _connectionHandler->stopListener();
+    _connectionHandler->stop();
 }
 void HttpServer::StartServer(int port) {
-  printf("Starting server on port %d\n", port);
-  _connectionHandler->startListener(port);
-  _connectionHandler->connect([&](std::shared_ptr<Connection> newConnection) {
-    newIncomingConnection(newConnection);
+  printf("HttpServer :: Starting server on port %d\n", port);
+  _connectionHandler->start(port, 10); // TODO: make max connection size parametric
+  printf("HttpServer :: Server started on port %d\n", port);
+  _connectionHandler->registerNewRequestReceived([&](std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newConnection) {
+    newIncomingConnection(connection, newConnection);
   });
-  printf("Server started\n", port);
 }
 void HttpServer::registerController(std::string path, std::shared_ptr<IController> controller) {
   _controllerHandler->registerController(path, controller);
 }
-void HttpServer::newIncomingConnection(std::shared_ptr<Connection> newConnection) {
+void HttpServer::newIncomingConnection(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest) {
 //  auto thread = _threadPool->getNewThread([&]() {
 //    processNewRequest(newConnection);
 //  });
-  processNewRequest(newConnection);
+  auto handle = std::async(std::launch::async, &HttpServer::processNewRequest, this, connection, newRequest);
 }
-void HttpServer::processNewRequest(std::shared_ptr<Connection> newConnection) {
-  auto request = _requestParser->parse(newConnection);
-  _test = std::make_shared<HttpResponse>(newConnection, request);
+void HttpServer::processNewRequest(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest) {
+  _test = std::make_shared<HttpResponse>(connection, newRequest);
   _test->header("Connection", "close"); // TODO: support for keep-alive
-  _controllerHandler->processRequest(request, _test);
+  _controllerHandler->processRequest(newRequest, _test);
 }

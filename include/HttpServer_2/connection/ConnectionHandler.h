@@ -15,11 +15,13 @@
 #include <atomic>
 #include <cstring>
 #include <poll.h>
+#include <fcntl.h>
 
 #include <brutils/signal.hpp>
 
 #include "Listener.h"
 #include "Connection.h"
+#include "RequestParser.h"
 
 class ConnectionHandler {
  public:
@@ -30,18 +32,17 @@ class ConnectionHandler {
   void stop();
   void waitForFinished();
 
-  void pushIdleSocket(int socketFd);
-
-  void registerNewConnectionSlot(std::function<void(std::shared_ptr<Connection>)> func);
+  void registerNewRequestReceived(std::function<void(std::shared_ptr<Connection>, std::shared_ptr<HttpRequest>)> func);
 
  private:
   /*! worker thread function */
   void run();
   void clearTimeoutSockets(struct pollfd* socketList, int &socketListSize);
   void processSockets(struct pollfd* socketList, int &socketListSize);
+  void parseIncomingData(int sockedFd);
 
  private:
-  brutils::signal<std::shared_ptr<Connection>> _signal;
+  brutils::signal<std::shared_ptr<Connection>, std::shared_ptr<HttpRequest>> _signal;
 
  private:
   int _maxConnSize;
@@ -49,6 +50,8 @@ class ConnectionHandler {
   struct sockaddr_in _serverAddr;
   std::atomic_bool _running;
   std::thread _thread;
+  std::map<int, std::shared_ptr<RequestParser>> _parserMap;
+  std::map<int, int> _timeoutMap;
 };
 
 #endif //CERVPP_CONNECTIONHANDLER_H

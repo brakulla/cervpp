@@ -17,14 +17,27 @@
 
 class RequestParser {
  public:
-  RequestParser() = default;
+  RequestParser();
 
-  std::shared_ptr<HttpRequest> parse(std::shared_ptr<Connection> newConnection);
+  std::shared_ptr<HttpRequest> parse(std::string input);
  private:
-  void parseRequestLine(std::shared_ptr<HttpRequest> req, std::vector<std::string>::iterator line);
-  void parseHeaders(std::shared_ptr<HttpRequest> req, std::vector<std::string>::iterator line);
-  void parseBody(std::shared_ptr<HttpRequest> req, std::vector<std::string>::iterator line);
+  bool partialParse();
+  void parseRequestLine(std::string line);
+  void parseHeaderLine(std::string line);
+  void parseBodyLine(std::string line);
 
+ private:
+  std::string _unprocessedData;
+  std::vector<std::string> _inputLines;
+  std::shared_ptr<HttpRequest> _request;
+  int _bodyLength;
+
+  enum ParsingStatus {
+    REQUEST_LINE,
+    HEADER_LINES,
+    BODY,
+    FINISHED
+  } _parsingStatus;
 };
 
 #endif //CERVPP_REQUESTPARSER_H

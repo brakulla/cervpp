@@ -14,7 +14,7 @@ Connection::Connection(int socketFd)
     : _socketFd(socketFd), _type(ConnectionType::KEEP_ALIVE), _maxConnectionCount(100), _keepAliveTimeout(5) {
 }
 Connection::~Connection() {
-  ::close(_socketFd);
+//  ::close(_socketFd);
 }
 Connection &Connection::operator<<(const std::string &input) {
   if (-1 == _socketFd)
