@@ -7,7 +7,6 @@
 #include "DefaultController.h"
 
 void DefaultController::process(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp) {
-  resp->status(404);
-  resp->header("Content-Type", "text/html");
-  resp->send("<html><body>Sorry not found</body></html>");
+    resp->status(404);
+    resp->render("404.html");
 }

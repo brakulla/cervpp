@@ -27,6 +27,7 @@ class HttpResponse {
   void header(std::string key, std::string value);
   void contentType(std::string type);
   void status(const int status);
+  void send();
   void send(std::string body);
   void sendJson(nlohmann::json &body);
   void render(std::string filePath);
@@ -40,6 +41,7 @@ class HttpResponse {
   std::shared_ptr<Connection> _connection;
 
  private:
+  void sendResponse();
   void sendResponse(std::string &body);
   void sendResponse(const std::string &body);
 

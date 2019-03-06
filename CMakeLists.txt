@@ -13,6 +13,7 @@ file(GLOB SRCS
         src/HttpServer_2/request/*[.c.cc.cpp]
         src/HttpServer_2/response/*[.c.cc.cpp]
         src/HttpServer_2/thread/*[.c.cc.cpp]
+        src/HttpServer_2/staticfile/*[.c.cc.cpp]
 )
 
 include_directories(
@@ -23,6 +24,7 @@ include_directories(
         include/HttpServer_2/request
         include/HttpServer_2/response
         include/HttpServer_2/thread
+        include/HttpServer_2/staticfile
 
         ../brutils/include
 )

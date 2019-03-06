@@ -21,6 +21,9 @@ void HttpResponse::contentType(std::string type) {
 void HttpResponse::status(const int status) {
   _status = status;
 }
+void HttpResponse::send() {
+  sendResponse();
+}
 void HttpResponse::send(std::string body) {
   insertContentTypeHeader("text/plain");
   sendResponse(body);
@@ -29,22 +32,28 @@ void HttpResponse::sendJson(nlohmann::json &body) {
   insertContentTypeHeader("application/json");
   sendResponse(body.dump(4));
 }
+
 void HttpResponse::render(std::string filePath) {
-  std::ifstream ifs(filePath);
+  std::ifstream ifs("/home/burakon/Projects/per/cervpp/view/" + filePath);
   std::stringstream ss;
   ss << ifs.rdbuf();
+  header("Content-Length", std::to_string(ifs.tellg()));
+  printf("Body (%d): %s\n", ifs.tellg(), ss.str().c_str());
 
   insertContentTypeHeader("text/html");
   sendResponse(ss.str());
 }
-
+void HttpResponse::sendResponse() {
+  sendStatusLine();
+  sendHeaders();
+}
 // auxiliary
 void HttpResponse::sendResponse(std::string &body) {
   sendResponse((const std::string)body);
 }
 void HttpResponse::sendResponse(const std::string &body) {
-  if (!body.empty())
-    header("Content-Length", std::to_string(body.size()));
+  if (!body.empty() && _headers.end() == _headers.find("Content-Length"))
+    header("Content-Length", std::to_string(body.size()+4));
   sendStatusLine();
   sendHeaders();
   if (!body.empty())
@@ -66,9 +75,11 @@ void HttpResponse::insertDefaultHeader() {
     header("Server", "cervpp/"+std::string(PROJECT_VERSION));
   }
 }
+
 void HttpResponse::sendStatusLine() {
   *_connection << HTTP_VERSION_TO_STR.at(_version) << " " << _status << " " << HTTP_STATUSCODE_MAP.at(_status) << "\r\n";
 }
+
 void HttpResponse::sendHeaders() {
   insertDefaultHeader();
   for (auto &item: _headers)
