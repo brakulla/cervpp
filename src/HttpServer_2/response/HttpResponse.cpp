@@ -9,7 +9,8 @@
 HttpResponse::HttpResponse(std::shared_ptr<Connection> conn, std::shared_ptr<HttpRequest> req) {
   _connection = conn;
   _version = req->getVersion();
-  _headers = req->getHeaders();
+  header("Connection", req->getHeader("Connection"));
+//  _headers = req->getHeaders();
 }
 void HttpResponse::header(std::string key, std::string value) {
   _headers[key] = value;
@@ -48,10 +49,10 @@ void HttpResponse::sendResponse(const std::string &body) {
   sendHeaders();
   if (!body.empty())
     *_connection << body;
-  *_connection << "\r\r";
+  *_connection << "\r\n\r\n";
 }
 void HttpResponse::insertContentTypeHeader(std::string type) {
-  if (_headers.end() != _headers.find("Content-Type"))
+  if (_headers.end() == _headers.find("Content-Type"))
     header("Content-Type", type);
 }
 void HttpResponse::insertDefaultHeader() {
@@ -66,11 +67,11 @@ void HttpResponse::insertDefaultHeader() {
   }
 }
 void HttpResponse::sendStatusLine() {
-  *_connection << HTTP_VERSION_TO_STR.at(_version) << " " << _status << HTTP_STATUSCODE_MAP.at(_status) << "\r";
+  *_connection << HTTP_VERSION_TO_STR.at(_version) << " " << _status << " " << HTTP_STATUSCODE_MAP.at(_status) << "\r\n";
 }
 void HttpResponse::sendHeaders() {
   insertDefaultHeader();
   for (auto &item: _headers)
-    *_connection << item.first << ": " << item.second << "\r";
-  *_connection << "\r";
+    *_connection << item.first << ": " << item.second << "\r\n";
+  *_connection << "\r\n";
 }

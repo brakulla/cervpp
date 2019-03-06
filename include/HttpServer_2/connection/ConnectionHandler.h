@@ -32,6 +32,8 @@ class ConnectionHandler {
   void stop();
   void waitForFinished();
 
+  void pushIdleSocket(int socketFd);
+
   void registerNewRequestReceived(std::function<void(std::shared_ptr<Connection>, std::shared_ptr<HttpRequest>)> func);
 
  private:

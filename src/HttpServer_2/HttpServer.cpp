@@ -35,6 +35,6 @@ void HttpServer::newIncomingConnection(std::shared_ptr<Connection> connection, s
 }
 void HttpServer::processNewRequest(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest) {
   _test = std::make_shared<HttpResponse>(connection, newRequest);
-  _test->header("Connection", "close"); // TODO: support for keep-alive
+  _test->header("Connection", "keep-alive"); // TODO: support for keep-alive
   _controllerHandler->processRequest(newRequest, _test);
 }
