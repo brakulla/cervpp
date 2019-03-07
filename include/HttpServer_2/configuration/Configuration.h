@@ -13,22 +13,23 @@
 #include <nlohmann/json.hpp>
 
 class Configuration {
-public:
-    Configuration(const Configuration &) = delete;
-    Configuration(Configuration &&) = delete;
-    void operator=(const Configuration &) = delete;
+ public:
+  Configuration(const Configuration &) = delete;
+  Configuration(Configuration &&) = delete;
+  void operator=(const Configuration &) = delete;
 
-    static Configuration &get() {
-        static Configuration instance;
-        return instance;
-    }
+  static Configuration &get() {
+    static Configuration instance;
+    return instance;
+  }
 
-    void parseFile(std::ifstream &inStream);
-    std::string getValue(std::string key);
+  void parseFile(std::ifstream &inStream);
+  void parseFile(std::string &content);
+  std::string getValue(std::string key);
 
-private:
-    Configuration() = default;
-    nlohmann::json _config;
+ private:
+  Configuration() = default;
+  nlohmann::json _config;
 };
 
 #endif //CERVPP_CONFIGURATION_H

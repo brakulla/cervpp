@@ -13,3 +13,6 @@ void Configuration::parseFile(std::ifstream &inStream) {
 std::string Configuration::getValue(std::string key) {
   return _config[key];
 }
+void Configuration::parseFile(std::string &content) {
+  _config = nlohmann::json::parse(content);
+}
