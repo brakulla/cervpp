@@ -42,7 +42,9 @@ void Listener::waitForFinish() {
 }
 
 int Listener::getNextConnection() {
-  return _queue.pop();
+  if (_queue.waitPop())
+    return _queue.pop();
+  return -1;
 }
 
 void Listener::run() {

@@ -6,7 +6,35 @@
 #ifndef CERVPP_THREAD_H
 #define CERVPP_THREAD_H
 
+#include <thread>
+#include <mutex>
+#include <atomic>
+#include <functional>
+
+#include <brutils/queue_pc.hpp>
+
 class Thread {
+ public:
+  Thread();
+  Thread(const Thread&) = delete;
+  ~Thread();
+
+  void start();
+  void stop();
+  bool isExecuting();
+  void execute(std::function<void()> func);
+
+ private:
+  std::atomic_bool _running;
+  std::atomic_bool _executing;
+  std::mutex _mutex;
+  std::thread _thread;
+
+ private:
+  void run();
+
+ private:
+  brutils::queue_pc<std::function<void()>> _queue;
 
 };
 

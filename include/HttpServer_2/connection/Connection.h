@@ -25,6 +25,8 @@ class Connection {
   explicit Connection(int socketFd);
   ~Connection();
 
+  int getSocketFd();
+
   Connection &operator<<(const std::string &input);
   Connection &operator<<(const int &input);
   Connection &operator>>(std::string &output);

@@ -32,7 +32,7 @@ class ConnectionHandler {
   void stop();
   void waitForFinished();
 
-  void pushIdleSocket(int socketFd);
+  void pushIdleSocket(std::shared_ptr<Connection> connection);
 
   void registerNewRequestReceived(std::function<void(std::shared_ptr<Connection>, std::shared_ptr<HttpRequest>)> func);
 
@@ -49,6 +49,8 @@ class ConnectionHandler {
  private:
   int _maxConnSize;
   int _serverFd;
+  int _socketListSize;
+  struct pollfd *_socketList;
   struct sockaddr_in _serverAddr;
   std::atomic_bool _running;
   std::thread _thread;

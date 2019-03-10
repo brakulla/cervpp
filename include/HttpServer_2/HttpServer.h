@@ -23,6 +23,7 @@ class HttpServer {
   ~HttpServer();
 
   void StartServer(int port);
+  void waitForFinished();
 
  private:
   void registerController(std::string path, std::shared_ptr<IController> controller);
