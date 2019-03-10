@@ -2,8 +2,6 @@
 // Created by brakulla on 18.02.2019.
 //
 
-#include <connection/ConnectionHandler.h>
-
 #include "ConnectionHandler.h"
 
 #define INCOMING_DATA_SIZE 1024

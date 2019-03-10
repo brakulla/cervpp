@@ -3,6 +3,10 @@
  * file 'LICENSE', which is part of this source code package.
  */
 
+/*
+ * TCP/IP level server class.
+ */
+
 #ifndef CERVPP_CONNECTIONHANDLER_H
 #define CERVPP_CONNECTIONHANDLER_H
 
@@ -19,7 +23,6 @@
 
 #include <brutils/signal.hpp>
 
-#include "Listener.h"
 #include "Connection.h"
 #include "RequestParser.h"
 
