@@ -2,8 +2,6 @@
 // Created by brakulla on 18.02.2019.
 //
 
-#include <connection/ConnectionHandler.h>
-
 #include "ConnectionHandler.h"
 
 #define INCOMING_DATA_SIZE 1024
@@ -50,29 +48,32 @@ void ConnectionHandler::start(unsigned long port, int maxConnectionSize) {
 }
 void ConnectionHandler::run() {
   printf("ConnectionHandler :: Started connection thread\n");
-  int socketListSize = 1;
-  auto socketList = (struct pollfd *) calloc((size_t) _maxConnSize, sizeof(struct pollfd));
-  socketList[0].fd = _serverFd;
-  socketList[0].events = POLLIN;
+  _socketListSize = 1;
+  _socketList = (struct pollfd *) calloc((size_t) _maxConnSize, sizeof(struct pollfd));
+  _socketList[0].fd = _serverFd;
+  _socketList[0].events = POLLIN;
 
   while (_running) {
     // TODO: retrieve below timeout from configuration
     printf("ConnectionHandler :: Starting polling\n");
-    int pollRes = ::poll(socketList, (nfds_t) socketListSize, 1000); // TODO: look for epoll function
+    int pollRes = ::poll(_socketList, (nfds_t) _socketListSize, 1000); // TODO: look for epoll function
     if (0 > pollRes) {
       printf("ConnectionHandler :: Error with the sockets! Error: %d - %s\n", errno, strerror(errno));
       break;
     } else if (0 == pollRes) {
       printf("ConnectionHandler :: Timeout occured on poll\n");
-      clearTimeoutSockets(socketList, socketListSize);
+      clearTimeoutSockets(_socketList, _socketListSize);
     } else {
       printf("ConnectionHandler :: Activity detected on sockets. Poll result: %d\n", pollRes);
-      processSockets(socketList, socketListSize);
+      processSockets(_socketList, _socketListSize);
     }
   }
 }
-void ConnectionHandler::pushIdleSocket(int socketFd) {
-  // TODO: implement
+void ConnectionHandler::pushIdleSocket(std::shared_ptr<Connection> connection) {
+  _timeoutMap.insert(std::make_pair(connection->getSocketFd(), 5));
+  _socketList[_socketListSize].fd = connection->getSocketFd();
+  _socketList[_socketListSize].events = POLLIN;
+  ++_socketListSize;
 }
 void ConnectionHandler::processSockets(struct pollfd *socketList, int &socketListSize) {
   // check server socket first
@@ -142,6 +143,8 @@ void ConnectionHandler::clearTimeoutSockets(struct pollfd *socketList, int &sock
     int removed = 0;
     for (int i = toBeRemoved.at(0), size = socketListSize; i < size; ++i) {
       if (!toBeRemoved.empty() && toBeRemoved.at(0) == i + removed) {
+        printf("ConnectionHandler :: Closing socket %d\n", socketList[i].fd);
+        ::close(socketList[i].fd);
         printf("ConnectionHandler :: Removing socket %d\n", socketList[i].fd);
         toBeRemoved.pop_back();
         ++removed;
@@ -186,6 +189,7 @@ void ConnectionHandler::parseIncomingData(int sockedFd) {
 //  } while (incomingDataSize != sizeof(incomingData));
   } while (incomingDataSize == 0);
   auto req = parser->parse(data);
+  printf("ConnectionHandler :: New request %s\n", req->getURI().c_str());
   if (req)
     _signal.emit(std::make_shared<Connection>(sockedFd), req);
 }

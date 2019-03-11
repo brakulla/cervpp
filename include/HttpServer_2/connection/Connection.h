@@ -3,6 +3,11 @@
  * file 'LICENSE', which is part of this source code package.
  */
 
+/*
+ * A wrapper class for socket connections. Used mostly simple writing and reading.
+ * RAII is not used since socket life-time may be longer than Connection object.
+ */
+
 #ifndef CERVPP_TCPCONNECTION_H
 #define CERVPP_TCPCONNECTION_H
 
@@ -23,7 +28,8 @@ enum class ConnectionType {
 class Connection {
  public:
   explicit Connection(int socketFd);
-  ~Connection();
+
+  int getSocketFd();
 
   Connection &operator<<(const std::string &input);
   Connection &operator<<(const int &input);
