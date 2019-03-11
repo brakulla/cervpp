@@ -12,18 +12,24 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include <unistd.h>
 
 #include <brutils/string_utils.hpp>
 
+#include "Configuration.h"
+
 class StaticFile {
  public:
-  StaticFile(std::string path);
+  explicit StaticFile(std::string path);
+  bool isValid();
+  std::string getFilePath();
   std::string getContent();
   std::string getContentType();
   long getContentLength();
 
  private:
   bool _read;
+  bool _valid;
   std::string _filePath;
   std::string _content;
   std::string _contentType;

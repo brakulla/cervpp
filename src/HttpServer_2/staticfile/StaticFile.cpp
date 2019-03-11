@@ -83,24 +83,42 @@ static std::map<std::string, std::string> mimeMap = {
     {"7z", "application/x-7z-compressed"}
 };
 
-StaticFile::StaticFile(std::string path) : _read(false) {
-  _filePath = path;
+StaticFile::StaticFile(std::string path) : _read(false), _valid(false) {
+  auto conf = Configuration::getConf();
+  char cwd[1024];
+  _filePath = getcwd(cwd, 1024);
+  if (conf.end() != conf.find("StaticFile")) {
+    auto staticFileConf = conf["StaticFile"];
+    if (staticFileConf.end() != staticFileConf.find("RootPath"))
+      _filePath = staticFileConf["RootPath"].get<std::string>();
+  }
+  _filePath.append(path);
+  readFile();
+}
+bool StaticFile::isValid() {
+  return _valid;
+}
+std::string StaticFile::getFilePath() {
+  return _filePath;
 }
 std::string StaticFile::getContent() {
-  readFile();
   return _content;
 }
 std::string StaticFile::getContentType() {
-  readFile();
   return _contentType;
 }
 long StaticFile::getContentLength() {
-  readFile();
   return _contentLength;
 }
 void StaticFile::readFile() {
   if (!_read) {
+    _read = true;
     std::ifstream ifs(_filePath);
+    _valid = ifs.good();
+    if (!_valid) {
+      _read = true;
+      return;
+    }
     std::stringstream ss;
     ss << ifs.rdbuf();
     _contentLength = ifs.tellg();
@@ -114,6 +132,5 @@ void StaticFile::readFile() {
       if (mimeMap.end() != mimeMap.find(result.at(result.size() - 1)))
         _contentType = mimeMap.at(result.at(result.size() - 1));
     }
-    _read = true;
   }
 }

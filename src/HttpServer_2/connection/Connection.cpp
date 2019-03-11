@@ -12,6 +12,19 @@
 
 Connection::Connection(int socketFd)
     : _socketFd(socketFd), _type(ConnectionType::KEEP_ALIVE), _maxConnectionCount(100), _keepAliveTimeout(5) {
+  auto conf = Configuration::getConf();
+  _type = ConnectionType::KEEP_ALIVE;
+  _maxConnectionCount = 100;
+  _keepAliveTimeout = 5;
+  if (conf.end() == conf.find("Connection")) {
+    auto connConf = conf["Connection"];
+    if (connConf.end() != connConf.find("KeepAlive"))
+      _type = connConf["KeepAlive"].get<bool>() ? ConnectionType::KEEP_ALIVE : ConnectionType::CLOSE;
+    if (connConf.end() != connConf.find("MaxConnectionCount"))
+      _maxConnectionCount = connConf["MaxConnectionCount"].get<int>();
+    if (connConf.end() != connConf.find("KeepAliveTimeout"))
+      _keepAliveTimeout = connConf["KeepAliveTimeout"].get<int>();
+  }
 }
 int Connection::getSocketFd() {
   return _socketFd;

@@ -8,6 +8,13 @@
 
 ConnectionHandler::ConnectionHandler() {
   _running = false;
+  auto conf = Configuration::getConf();
+  _maxConnSize = 5;
+  if (conf.end() != conf.find("Connection")) {
+    auto connConf = conf["Connection"];
+    if (connConf.end() != connConf.find("MaxConnectionSize"))
+      _maxConnSize = connConf["MaxConnectionSize"].get<int>();
+  }
 }
 
 ConnectionHandler::~ConnectionHandler() {

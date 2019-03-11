@@ -13,6 +13,7 @@
 #include <mutex>
 #include <condition_variable>
 
+#include <Configuration.h>
 #include "Thread.h"
 #include "SimpleTimer.h"
 

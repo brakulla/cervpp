@@ -17,6 +17,7 @@
 #include "httpcommon.h"
 #include "Connection.h"
 #include "HttpRequest.h"
+#include "StaticFile.h"
 
 class HttpResponse {
  public:
@@ -30,7 +31,8 @@ class HttpResponse {
   void send();
   void send(std::string body);
   void sendJson(nlohmann::json &body);
-  void render(std::string filePath);
+  void render(std::string const filePath);
+  void render(StaticFile &staticFile);
 
  private:
   HTTP_VERSION _version;

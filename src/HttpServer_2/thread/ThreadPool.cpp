@@ -7,6 +7,14 @@
 #include "ThreadPool.h"
 
 ThreadPool::ThreadPool() : _lastId(0), _maxThreadSize(5), _timeoutDuration(5) {
+  auto conf = Configuration::getConf();
+  if (conf.end() != conf.find("Thread")) {
+    auto threadConf = conf["Thread"];
+    if (threadConf.end() != threadConf.find("MaxThreadSize"))
+      _maxThreadSize = threadConf["MaxThreadSize"].get<int>();
+    if (threadConf.end() != threadConf.find("ThreadTimeout"))
+      _timeoutDuration = threadConf["ThreadTimeout"];
+  }
 }
 void ThreadPool::startNewOperation(std::function<void()> func) {
   printf("ThreadPool :: Starting new operation\n");

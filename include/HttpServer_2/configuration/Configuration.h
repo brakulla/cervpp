@@ -11,6 +11,7 @@
 #include <string>
 
 #include <nlohmann/json.hpp>
+#include <brutils/string_utils.hpp>
 
 class Configuration {
  public:
@@ -23,9 +24,10 @@ class Configuration {
     return instance;
   }
 
-  void parseFile(std::ifstream &inStream);
-  void parseFile(std::string &content);
-  std::string getValue(std::string key);
+  static void parseFile(std::ifstream &inStream);
+  static void parseFile(std::string &content);
+  static std::string getValue(std::string key);
+  static nlohmann::json getConf();
 
  private:
   Configuration() = default;

@@ -20,6 +20,8 @@
 #include <string>
 #include <sstream>
 
+#include "Configuration.h"
+
 enum class ConnectionType {
   CLOSE,
   KEEP_ALIVE

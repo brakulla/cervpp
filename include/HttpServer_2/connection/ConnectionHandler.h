@@ -23,6 +23,7 @@
 
 #include <brutils/signal.hpp>
 
+#include "Configuration.h"
 #include "Connection.h"
 #include "RequestParser.h"
 
@@ -49,8 +50,9 @@ class ConnectionHandler {
  private:
   brutils::signal<std::shared_ptr<Connection>, std::shared_ptr<HttpRequest>> _signal;
 
- private:
+ private: // conf
   int _maxConnSize;
+ private:
   int _serverFd;
   int _socketListSize;
   struct pollfd *_socketList;

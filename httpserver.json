@@ -1,0 +1,15 @@
+{
+  "Connection": {
+    "KeepAlive": true,
+    "MaxConnectionCount": 5,
+    "KeepAliveTimeout": 100,
+    "MaxConnectionSize": 5
+  },
+  "StaticFile": {
+    "RootPath": "/home/burakon/Projects/per/cervpp/view/"
+  },
+  "Thread": {
+    "MaxThreadSize": 5,
+    "ThreadTimeout": 5
+  }
+}

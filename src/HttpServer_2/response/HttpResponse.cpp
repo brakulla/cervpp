@@ -32,16 +32,24 @@ void HttpResponse::sendJson(nlohmann::json &body) {
   insertContentTypeHeader("application/json");
   sendResponse(body.dump(4));
 }
-
-void HttpResponse::render(std::string filePath) {
-  std::ifstream ifs("/home/burakon/Projects/per/cervpp/view/" + filePath);
-  std::stringstream ss;
-  ss << ifs.rdbuf();
-  header("Content-Length", std::to_string(ifs.tellg()));
-  printf("Body (%d): %s\n", ifs.tellg(), ss.str().c_str());
-
-  insertContentTypeHeader("text/html");
-  sendResponse(ss.str());
+void HttpResponse::render(std::string const filePath) {
+  StaticFile sFile(filePath);
+  if (!sFile.isValid()) {
+    printf("HttpResponse :: Cannot read static file: %s\n", filePath.c_str());
+    return;
+  }
+  insertContentTypeHeader(sFile.getContentType());
+  header("Content-Length", std::to_string(sFile.getContentLength()));
+  sendResponse(sFile.getContent());
+}
+void HttpResponse::render(StaticFile &staticFile) {
+  if (!staticFile.isValid()) {
+    printf("HttpResponse :: Cannot read static file: %s\n", staticFile.getFilePath().c_str());
+    return;
+  }
+  insertContentTypeHeader(staticFile.getContentType());
+  header("Content-Length", std::to_string(staticFile.getContentLength()));
+  sendResponse(staticFile.getContent());
 }
 void HttpResponse::sendResponse() {
   sendStatusLine();
@@ -64,6 +72,7 @@ void HttpResponse::insertContentTypeHeader(std::string type) {
   if (_headers.end() == _headers.find("Content-Type"))
     header("Content-Type", type);
 }
+
 void HttpResponse::insertDefaultHeader() {
   if (_headers.end() == _headers.find("Date")) {
     std::ostringstream osDate;
@@ -79,7 +88,6 @@ void HttpResponse::insertDefaultHeader() {
 void HttpResponse::sendStatusLine() {
   *_connection << HTTP_VERSION_TO_STR.at(_version) << " " << _status << " " << HTTP_STATUSCODE_MAP.at(_status) << "\r\n";
 }
-
 void HttpResponse::sendHeaders() {
   insertDefaultHeader();
   for (auto &item: _headers)
