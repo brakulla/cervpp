@@ -26,9 +26,9 @@ class HttpServer {
 
   void StartServer(int port);
   void waitForFinished();
+  void registerController(std::string path, std::shared_ptr<IController> controller);
 
  private:
-  void registerController(std::string path, std::shared_ptr<IController> controller);
   void newIncomingConnection(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest);
   void processNewRequest(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest);
 

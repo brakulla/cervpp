@@ -26,10 +26,14 @@ class IController {
   ControllerType getType() const {
     return _type;
   }
+  void setControllerPath(std::string path) {
+    _controllerPath = path;
+  }
   virtual void process(std::shared_ptr<HttpRequest> req,
                        std::shared_ptr<HttpResponse> resp) = 0;
- private:
+ protected:
   ControllerType _type;
+  std::string _controllerPath;
 };
 
 #endif //CERVPP_CONTROLLER_H

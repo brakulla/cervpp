@@ -93,6 +93,9 @@ StaticFile::StaticFile(std::string path) : _read(false), _valid(false) {
       _filePath = staticFileConf["RootPath"].get<std::string>();
   }
   _filePath.append(path);
+  if (_filePath.at(_filePath.size()-1) == '/')
+    _filePath.append("index.html");
+  printf("StaticFile :: Static file: %s\n", _filePath.c_str());
   readFile();
 }
 bool StaticFile::isValid() {
@@ -114,7 +117,7 @@ void StaticFile::readFile() {
   if (!_read) {
     _read = true;
     std::ifstream ifs(_filePath);
-    _valid = ifs.good();
+    _valid = ifs.is_open();
     if (!_valid) {
       _read = true;
       return;

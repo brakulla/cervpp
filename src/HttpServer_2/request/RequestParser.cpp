@@ -12,57 +12,58 @@ RequestParser::RequestParser() : _parsingStatus(REQUEST_LINE), _request(std::mak
 
 }
 std::shared_ptr<HttpRequest> RequestParser::parse(std::string input) {
-  spdlog::trace("RequestParser :: Input: {}", input.c_str());
+  printf("RequestParser :: Input: %s\n", input.c_str());
   _unprocessedData.append(input);
   bool result = partialParse();
   if (result) {
-    spdlog::trace("RequestParser :: Parsing finished");
+    printf("RequestParser :: Parsing finished\n");
     return _request;
   }
-  spdlog::trace("RequestParser :: Parsing continues");
+  printf("RequestParser :: Parsing continues\n");
   return nullptr;
 }
 bool RequestParser::partialParse() {
   std::vector<std::string> lines;
   brutils::split_string(_unprocessedData, lines, "\r\n");
   while (!lines.empty()) { // we have a line to process
-    spdlog::trace("RequestParser :: _unprocessedData.size(): {}", (int)_unprocessedData.size());
-    spdlog::trace("RequestParser :: lines.size(): {}, lines.at(0): {}", (int)lines.size(), lines.at(0).c_str());
+    printf("RequestParser :: _unprocessedData.size(): %d\n", (int)_unprocessedData.size());
+    printf("RequestParser :: lines.size(): %d, lines.at(0): %s\n", (int)lines.size(), lines.at(0).c_str());
     switch (_parsingStatus) {
       case REQUEST_LINE:
         parseRequestLine(lines.at(0));
-        spdlog::trace("RequestParser :: Before RequestLine _unprocessedData.size(): {}", (int)_unprocessedData.size());
+        printf("RequestParser :: Before RequestLine _unprocessedData.size(): %d\n", (int)_unprocessedData.size());
         if (lines.at(0).size()+2 < _unprocessedData.size())
           _unprocessedData.erase(0, lines.at(0).size()+2);
         else _unprocessedData.erase(0, _unprocessedData.size());
-        spdlog::trace("RequestParser :: After RequestLine _unprocessedData.size(): {}", (int)_unprocessedData.size());
+        printf("RequestParser :: After RequestLine _unprocessedData.size(): %d\n", (int)_unprocessedData.size());
         _parsingStatus = HEADER_LINES;
-        spdlog::trace("RequestParser :: Parsing status changed to HEADER_LINES");
+        printf("RequestParser :: Parsing status changed to HEADER_LINES\n");
         break;
       case HEADER_LINES:
         if (lines.at(0).empty()) {
-          _unprocessedData.erase(0, 2);
+          printf("Line empty, remaining data: %s\n", _unprocessedData.c_str());
+          _unprocessedData.clear();
           if (!_request->getHeader("Content-Length").empty()) {
             _parsingStatus = BODY;
-            spdlog::trace("RequestParser :: Parsing status: BODY");
+            printf("RequestParser :: Parsing status: BODY\n");
             _bodyLength = std::stoi(_request->getHeader("Content-Length"));
           }
           else {
             _parsingStatus = FINISHED;
-            spdlog::trace("RequestParser :: Parsing status: FINISHED");
+            printf("RequestParser :: Parsing status: FINISHED\n");
           }
         } else {
           parseHeaderLine(lines.at(0));
-          spdlog::trace("RequestParser :: Before HeaderLine _unprocessedData.size(): {}", (int)_unprocessedData.size());
+          printf("RequestParser :: Before HeaderLine _unprocessedData.size(): %d\n", (int)_unprocessedData.size());
           if (lines.at(0).size()+2 < _unprocessedData.size())
             _unprocessedData.erase(0, lines.at(0).size()+2);
           else _unprocessedData.erase(0, _unprocessedData.size());
-          spdlog::trace("RequestParser :: After HeaderLine _unprocessedData.size(): {}", (int)_unprocessedData.size());
+          printf("RequestParser :: After HeaderLine _unprocessedData.size(): %d\n", (int)_unprocessedData.size());
         }
         break;
       case BODY:
         parseBodyLine(lines.at(0));
-        spdlog::trace("RequestParser :: Before Body _unprocessedData.size(): {}", (int)_unprocessedData.size());
+        printf("RequestParser :: Before Body _unprocessedData.size(): %d\n", (int)_unprocessedData.size());
         if (lines.at(0).size()+2 < _unprocessedData.size()) {
           _unprocessedData.erase(0, lines.at(0).size() + 2);
           _bodyLength -= lines.at(0).size()+2;
@@ -70,10 +71,10 @@ bool RequestParser::partialParse() {
           _unprocessedData.erase(0, _unprocessedData.size());
           _bodyLength -= _unprocessedData.size();
         }
-        spdlog::trace("RequestParser :: After Body _unprocessedData.size(): {}", (int)_unprocessedData.size());
+        printf("RequestParser :: After Body _unprocessedData.size(): %d\n", (int)_unprocessedData.size());
         if (_bodyLength <= 0) {
           _parsingStatus = FINISHED;
-          spdlog::trace("RequestParser :: Parsing status: FINISHED");
+          printf("RequestParser :: Parsing status: FINISHED\n");
         }
     }
     if (FINISHED == _parsingStatus) {
@@ -85,7 +86,7 @@ bool RequestParser::partialParse() {
   return false;
 }
 void RequestParser::parseRequestLine(std::string line) {
-  spdlog::trace("RequestParser :: Parsing request line: {}", line.c_str());
+  printf("RequestParser :: Parsing request line: %s\n", line.c_str());
 
   std::smatch match;
   bool res = std::regex_match(line, match, std::regex(R"regex(^(\w+)\s(.+)\s(\w+\/[0-9]\.[0-9])$)regex"));
@@ -97,7 +98,7 @@ void RequestParser::parseRequestLine(std::string line) {
   _request->setVersion(match[3].str());
 }
 void RequestParser::parseHeaderLine(std::string line) {
-  spdlog::trace("RequestParser :: Parsing header line: {}", line.c_str());
+  printf("RequestParser :: Parsing header line: %s\n", line.c_str());
 
   std::smatch match;
   bool res = std::regex_match(line, match, std::regex(R"regex(^(.+):\s(.+)$)regex"));
@@ -106,6 +107,6 @@ void RequestParser::parseHeaderLine(std::string line) {
   _request->addHeader(match[1].str(), match[2].str());
 }
 void RequestParser::parseBodyLine(std::string line) {
-  spdlog::trace("RequestParser :: Parsing body line: {}", line.c_str());
+  printf("RequestParser :: Parsing body line: %s\n", line.c_str());
   _request->_body.append(line).append("\r\n");
 }

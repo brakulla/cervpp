@@ -14,11 +14,11 @@ HttpServer::~HttpServer() {
     _connectionHandler->stop();
 }
 void HttpServer::StartServer(int port) {
-  spdlog::info("HttpServer :: Starting server on port {}", port);
+  printf("HttpServer :: Starting server on port %d\n", port);
   _connectionHandler->start(port, 10); // TODO: make max connection size parametric
-  spdlog::info("HttpServer :: Server started on port {}", port);
+  printf("HttpServer :: Server started on port %d\n", port);
   _connectionHandler->registerNewRequestReceived([&](std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest) {
-    spdlog::info("HttpServer :: New request received {} on socket {}", newRequest->getURI().c_str(), (int)connection->getConnectionType());
+    printf("HttpServer :: New request received %s on socket %d\n", newRequest->getURI().c_str(), (int)connection->getConnectionType());
     newIncomingConnection(connection, newRequest);
   });
 }
@@ -29,16 +29,16 @@ void HttpServer::registerController(std::string path, std::shared_ptr<IControlle
   _controllerHandler->registerController(path, controller);
 }
 void HttpServer::newIncomingConnection(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest) {
-  spdlog::debug("HttpServer :: New incoming connection {} {}", newRequest->getURI().c_str(), (int)connection->getConnectionType());
+  printf("HttpServer :: New incoming connection %s %d\n", newRequest->getURI().c_str(), (int)connection->getConnectionType());
   _threadPool->startNewOperation([=] {
     processNewRequest(connection, newRequest);
   });
 }
 void HttpServer::processNewRequest(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest) {
-  spdlog::debug("HttpServer :: New request process started");
+  printf("HttpServer :: New request process started\n");
   _test = std::make_shared<HttpResponse>(connection, newRequest);
   _test->header("Connection", "keep-alive"); // TODO: support for keep-alive
   _controllerHandler->processRequest(newRequest, _test);
   _connectionHandler->pushIdleSocket(connection);
-  spdlog::debug("HttpServer :: Request served");
+  printf("HttpServer :: Request served\n");
 }

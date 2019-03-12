@@ -10,6 +10,8 @@
 #include <map>
 #include <string>
 
+#include <brutils/string_utils.hpp>
+
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 #include "IController.h"

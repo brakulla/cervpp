@@ -35,23 +35,27 @@ void HttpResponse::sendJson(nlohmann::json &body) {
 void HttpResponse::render(std::string const filePath) {
   StaticFile sFile(filePath);
   if (!sFile.isValid()) {
-    printf("HttpResponse :: Cannot read static file: %s\n", filePath.c_str());
-    return;
+    status(404);
+    sendResponse();
+  } else {
+    insertContentTypeHeader(sFile.getContentType());
+    header("Content-Length", std::to_string(sFile.getContentLength()));
+    sendResponse(sFile.getContent());
   }
-  insertContentTypeHeader(sFile.getContentType());
-  header("Content-Length", std::to_string(sFile.getContentLength()));
-  sendResponse(sFile.getContent());
 }
 void HttpResponse::render(StaticFile &staticFile) {
   if (!staticFile.isValid()) {
-    printf("HttpResponse :: Cannot read static file: %s\n", staticFile.getFilePath().c_str());
-    return;
+    status(404);
+    sendResponse();
+    printf("HttpResponse :: Rendered file is not valid\n");
+  } else {
+    insertContentTypeHeader(staticFile.getContentType());
+    header("Content-Length", std::to_string(staticFile.getContentLength()));
+    sendResponse(staticFile.getContent());
   }
-  insertContentTypeHeader(staticFile.getContentType());
-  header("Content-Length", std::to_string(staticFile.getContentLength()));
-  sendResponse(staticFile.getContent());
 }
 void HttpResponse::sendResponse() {
+  header("Content-Length", "0");
   sendStatusLine();
   sendHeaders();
 }
@@ -66,7 +70,6 @@ void HttpResponse::sendResponse(const std::string &body) {
   sendHeaders();
   if (!body.empty())
     *_connection << body;
-  *_connection << "\r\n\r\n";
 }
 void HttpResponse::insertContentTypeHeader(std::string type) {
   if (_headers.end() == _headers.find("Content-Type"))

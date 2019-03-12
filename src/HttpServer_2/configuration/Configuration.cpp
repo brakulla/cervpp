@@ -7,7 +7,7 @@
 void Configuration::parseFile(std::ifstream &inStream) {
   if (inStream.is_open()) {
     inStream >> get()._config;
-    spdlog::trace("Configuration :: Configuration read");
+    printf("Configuration :: Configuration read\n");
   }
 }
 void Configuration::parseFile(std::string &content) {

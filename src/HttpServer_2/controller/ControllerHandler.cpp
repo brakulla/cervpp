@@ -11,17 +11,20 @@ ControllerHandler::ControllerHandler() {
   std::shared_ptr<IController> def(new DefaultController);
 }
 void ControllerHandler::processRequest(std::shared_ptr<HttpRequest> request, std::shared_ptr<HttpResponse> response) {
-  spdlog::debug("ControllerHandler :: Processing new request with path: {}", request->getURI().c_str());
+  printf("ControllerHandler :: Processing new request with path: %s\n", request->getURI().c_str());
   for(auto &item: _controllerMap) {
-    if (0 == item.first.find(request->getURI())) {
+    printf("Controller: %s\n", item.first.c_str());
+    if (brutils::str_startsWith(request->getURI(), item.first)) {
       item.second->process(request, response);
       return;
     }
   }
+  printf("ControllerHandler :: No registered controller found, default controller is used\n");
   _defaultController->process(request, response);
 }
 void ControllerHandler::registerController(std::string &path, std::shared_ptr<IController> controller) {
-  if (_controllerMap.end() == _controllerMap.find(path))
+  if (_controllerMap.end() != _controllerMap.find(path))
     throw std::runtime_error("There is already a controller registered for path: " + path);
+  controller->setControllerPath(path);
   _controllerMap.insert(std::make_pair(path, controller));
 }
