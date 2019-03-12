@@ -8,7 +8,15 @@
 
 #include "IController.h"
 
+#include <brutils/string_utils.hpp>
+
 class ResourceController : public IController {
+ public:
+  ResourceController() : IController(ControllerType::ResourceController) {}
+  ~ResourceController() override = default;
+
+  void process(std::shared_ptr<HttpRequest> req,
+               std::shared_ptr<HttpResponse> resp) override;
 
 };
 
