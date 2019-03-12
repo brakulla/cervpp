@@ -31,9 +31,11 @@ include_directories(
 
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(libs/json)
+add_subdirectory(libs/spdlog)
 link_directories(../brutils/lib)
 add_executable(cervpp ${SRCS})
 target_link_libraries(cervpp
         PRIVATE nlohmann_json::nlohmann_json
+        PRIVATE spdlog
         PRIVATE brutils
         PUBLIC pthread)

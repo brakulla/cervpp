@@ -4,9 +4,6 @@
 
 #include "HttpServer.h"
 
-#include <memory>
-#include <HttpServer.h>
-
 HttpServer::HttpServer() {
   _connectionHandler = std::make_shared<ConnectionHandler>();
   _controllerHandler = std::make_shared<ControllerHandler>();
@@ -17,11 +14,11 @@ HttpServer::~HttpServer() {
     _connectionHandler->stop();
 }
 void HttpServer::StartServer(int port) {
-  printf("HttpServer :: Starting server on port %d\n", port);
+  spdlog::info("HttpServer :: Starting server on port {}", port);
   _connectionHandler->start(port, 10); // TODO: make max connection size parametric
-  printf("HttpServer :: Server started on port %d\n", port);
+  spdlog::info("HttpServer :: Server started on port {}", port);
   _connectionHandler->registerNewRequestReceived([&](std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest) {
-    printf("HttpServer :: New request received %s on socket %d\n", newRequest->getURI().c_str(), connection->getConnectionType());
+    spdlog::info("HttpServer :: New request received {} on socket {}", newRequest->getURI().c_str(), (int)connection->getConnectionType());
     newIncomingConnection(connection, newRequest);
   });
 }
@@ -32,16 +29,16 @@ void HttpServer::registerController(std::string path, std::shared_ptr<IControlle
   _controllerHandler->registerController(path, controller);
 }
 void HttpServer::newIncomingConnection(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest) {
-  printf("HttpServer :: New incoming connection %s %d\n", newRequest->getURI().c_str(), connection->getConnectionType());
+  spdlog::debug("HttpServer :: New incoming connection {} {}", newRequest->getURI().c_str(), (int)connection->getConnectionType());
   _threadPool->startNewOperation([=] {
     processNewRequest(connection, newRequest);
   });
 }
 void HttpServer::processNewRequest(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest) {
-  printf("HttpServer :: New request process started\n");
+  spdlog::debug("HttpServer :: New request process started");
   _test = std::make_shared<HttpResponse>(connection, newRequest);
   _test->header("Connection", "keep-alive"); // TODO: support for keep-alive
   _controllerHandler->processRequest(newRequest, _test);
   _connectionHandler->pushIdleSocket(connection);
-  printf("HttpServer :: Request served\n");
+  spdlog::debug("HttpServer :: Request served");
 }

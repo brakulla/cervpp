@@ -12,6 +12,7 @@
 
 #include <nlohmann/json.hpp>
 #include <brutils/string_utils.hpp>
+#include <spdlog/spdlog.h>
 
 class Configuration {
  public:

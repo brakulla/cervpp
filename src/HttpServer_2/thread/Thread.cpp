@@ -7,7 +7,7 @@
 #include "Thread.h"
 
 Thread::Thread() : _running(false), _executing(false) {
-  printf("Thread :: Initialized\n");
+  spdlog::trace("Thread :: Initialized");
 }
 Thread::~Thread() {
   _queue.stop();
@@ -19,7 +19,7 @@ Thread::~Thread() {
     _thread.join();
 }
 void Thread::start() {
-  printf("Thread :: Starting\n");
+  spdlog::trace("Thread :: Starting");
   std::unique_lock lock(_mutex);
   _running = true;
   _thread = std::thread(&Thread::run, this);
@@ -31,15 +31,15 @@ void Thread::run() {
     auto func = _queue.pop();
     std::unique_lock lock(_mutex);
     _executing = true;
-    printf("Thread :: Starting execution\n");
+    spdlog::trace("Thread :: Starting execution");
     func();
-    printf("Thread :: Executing finished, going idle\n");
+    spdlog::trace("Thread :: Executing finished, going idle");
     _executing = false;
   }
 }
 void Thread::stop() {
   if (_running)
-    printf("Thread :: Stopping\n");
+    spdlog::trace("Thread :: Stopping");
   _running = false;
 }
 bool Thread::isExecuting() {
@@ -47,7 +47,7 @@ bool Thread::isExecuting() {
   return _executing;
 }
 void Thread::execute(std::function<void()> func) {
-  printf("Thread :: New execution received\n");
+  spdlog::trace("Thread :: New execution received");
   std::unique_lock lock(_mutex);
   _queue.push(func);
 }

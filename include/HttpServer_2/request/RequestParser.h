@@ -11,6 +11,7 @@
 #include <regex>
 
 #include <brutils/string_utils.hpp>
+#include <spdlog/spdlog.h>
 
 #include "Connection.h"
 #include "HttpRequest.h"

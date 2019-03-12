@@ -11,6 +11,7 @@
 #include <atomic>
 #include <functional>
 
+#include <spdlog/spdlog.h>
 #include <brutils/queue_pc.hpp>
 
 class Thread {

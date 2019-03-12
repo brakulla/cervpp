@@ -16,6 +16,8 @@
 #include <atomic>
 #include <map>
 
+#include <spdlog/spdlog.h>
+
 class SimpleTimer {
  public:
   SimpleTimer();

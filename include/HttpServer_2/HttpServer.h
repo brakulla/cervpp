@@ -9,6 +9,8 @@
 #include <memory>
 #include <future>
 
+#include <spdlog/spdlog.h>
+
 #include "ConnectionHandler.h"
 #include "Connection.h"
 #include "ThreadPool.h"

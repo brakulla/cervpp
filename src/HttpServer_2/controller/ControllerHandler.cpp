@@ -11,7 +11,7 @@ ControllerHandler::ControllerHandler() {
   std::shared_ptr<IController> def(new DefaultController);
 }
 void ControllerHandler::processRequest(std::shared_ptr<HttpRequest> request, std::shared_ptr<HttpResponse> response) {
-  printf("ControllerHandler :: Processing new request with path: %s\n", request->getURI().c_str());
+  spdlog::debug("ControllerHandler :: Processing new request with path: {}", request->getURI().c_str());
   for(auto &item: _controllerMap) {
     if (0 == item.first.find(request->getURI())) {
       item.second->process(request, response);
