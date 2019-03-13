@@ -31,7 +31,7 @@ class RestfulAPIController : IController {
     std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)> callback;
   };
   std::vector<Route> _routeVector;
-  std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)> getCallback(std::string route);
+  std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)> getCallback(std::string method, std::string route);
 };
 
 #endif //CERVPP_RESTFULAPICONTROLLER_H

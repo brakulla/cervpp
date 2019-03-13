@@ -27,12 +27,20 @@ void RestfulAPIController::route(std::string method,
   _routeVector.push_back(newRoute);
 }
 std::function<void(std::shared_ptr<HttpRequest>,
-                   std::shared_ptr<HttpResponse>)> RestfulAPIController::getCallback(std::string route) {
+                   std::shared_ptr<HttpResponse>)> RestfulAPIController::getCallback(std::string method, std::string route) {
+  int matchSize = 0;
+  Route *result = nullptr;
   for(auto &item: _routeVector) {
-    // TODO: get the most matched route
-    if (brutils::str_startsWith(item.route, route))
-      return item.callback;
+    if (method != item.method)
+      continue;
+    int match = brutils::str_startsWithMatch(item.route, route);
+    if (matchSize < match) {
+      matchSize = match;
+      result = &item;
+    }
   }
+  if (nullptr != result)
+    return result->callback;
   return nullptr;
 }
 void RestfulAPIController::defaultProc(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp) {
