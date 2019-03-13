@@ -6,9 +6,11 @@
 #ifndef CERVPP_RESOURCECONTROLLER_H
 #define CERVPP_RESOURCECONTROLLER_H
 
-#include "IController.h"
+#include <map>
 
 #include <brutils/string_utils.hpp>
+
+#include "IController.h"
 
 class ResourceController : public IController {
  public:
@@ -18,6 +20,10 @@ class ResourceController : public IController {
   void process(std::shared_ptr<HttpRequest> req,
                std::shared_ptr<HttpResponse> resp) override;
 
+  void addResource(std::string resource, std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)> callback);
+
+ private:
+  std::map<std::string, std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)>> _resourceMap;
 };
 
 #endif //CERVPP_RESOURCECONTROLLER_H
