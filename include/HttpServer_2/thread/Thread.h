@@ -11,31 +11,31 @@
 #include <atomic>
 #include <functional>
 
-#include <spdlog/spdlog.h>
 #include <brutils/queue_pc.hpp>
 
-class Thread {
- public:
-  Thread();
-  Thread(const Thread&) = delete;
-  ~Thread();
+class Thread
+{
+public:
+    Thread();
+    Thread(const Thread &) = delete;
+    ~Thread();
 
-  void start();
-  void stop();
-  bool isExecuting();
-  void execute(std::function<void()> func);
+    void start();
+    void stop();
+    bool isExecuting();
+    void execute(std::function<void()> func);
 
- private:
-  std::atomic_bool _running;
-  std::atomic_bool _executing;
-  std::mutex _mutex;
-  std::thread _thread;
+private:
+    std::atomic_bool _running;
+    std::atomic_bool _executing;
+    std::mutex _mutex;
+    std::thread _thread;
 
- private:
-  void run();
+private:
+    void run();
 
- private:
-  brutils::queue_pc<std::function<void()>> _queue;
+private:
+    brutils::queue_pc<std::function<void()>> _queue;
 
 };
 

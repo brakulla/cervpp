@@ -1,4 +1,7 @@
 {
+  "Server": {
+    "Port": 3000
+  },
   "Connection": {
     "KeepAlive": true,
     "MaxConnectionCount": 5,

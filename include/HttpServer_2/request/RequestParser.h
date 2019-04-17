@@ -11,34 +11,35 @@
 #include <regex>
 
 #include <brutils/string_utils.hpp>
-#include <spdlog/spdlog.h>
 
 #include "Connection.h"
 #include "HttpRequest.h"
 
-class RequestParser {
- public:
-  RequestParser();
+class RequestParser
+{
+public:
+    RequestParser();
 
-  std::shared_ptr<HttpRequest> parse(std::string input);
- private:
-  bool partialParse();
-  void parseRequestLine(std::string line);
-  void parseHeaderLine(std::string line);
-  void parseBodyLine(std::string line);
+    std::shared_ptr<HttpRequest> parse(std::string input);
+private:
+    bool partialParse();
+    void parseRequestLine(std::string line);
+    void parseHeaderLine(std::string line);
+    void parseBodyLine(std::string line);
 
- private:
-  std::string _unprocessedData;
-  std::vector<std::string> _inputLines;
-  std::shared_ptr<HttpRequest> _request;
-  int _bodyLength;
+private:
+    std::string _unprocessedData;
+    std::vector<std::string> _inputLines;
+    std::shared_ptr<HttpRequest> _request;
+    int _bodyLength;
 
-  enum ParsingStatus {
-    REQUEST_LINE,
-    HEADER_LINES,
-    BODY,
-    FINISHED
-  } _parsingStatus;
+    enum ParsingStatus
+    {
+        REQUEST_LINE,
+        HEADER_LINES,
+        BODY,
+        FINISHED
+    } _parsingStatus;
 };
 
 #endif //CERVPP_REQUESTPARSER_H

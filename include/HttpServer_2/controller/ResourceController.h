@@ -12,18 +12,23 @@
 
 #include "IController.h"
 
-class ResourceController : public IController {
- public:
-  ResourceController() : IController(ControllerType::ResourceController) {}
-  ~ResourceController() override = default;
+class ResourceController: public IController
+{
+public:
+    ResourceController()
+        : IController(ControllerType::ResourceController)
+    {}
+    ~ResourceController() override = default;
 
-  void process(std::shared_ptr<HttpRequest> req,
-               std::shared_ptr<HttpResponse> resp) override;
+    void process(std::shared_ptr<HttpRequest> req,
+                 std::shared_ptr<HttpResponse> resp) override;
 
-  void addResource(std::string resource, std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)> callback);
+    void addResource(std::string resource,
+                     std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)> callback);
 
- private:
-  std::map<std::string, std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)>> _resourceMap;
+private:
+    std::map<std::string, std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)>>
+        _resourceMap;
 };
 
 #endif //CERVPP_RESOURCECONTROLLER_H

@@ -83,57 +83,65 @@ static std::map<std::string, std::string> mimeMap = {
     {"7z", "application/x-7z-compressed"}
 };
 
-StaticFile::StaticFile(std::string path) : _read(false), _valid(false) {
-  auto conf = Configuration::getConf();
-  char cwd[1024];
-  _filePath = getcwd(cwd, 1024);
-  if (conf.end() != conf.find("StaticFile")) {
-    auto staticFileConf = conf["StaticFile"];
-    if (staticFileConf.end() != staticFileConf.find("RootPath"))
-      _filePath = staticFileConf["RootPath"].get<std::string>();
-  }
-  _filePath.append(path);
-  if (_filePath.at(_filePath.size()-1) == '/')
-    _filePath.append("index.html");
-  printf("StaticFile :: Static file: %s\n", _filePath.c_str());
-  readFile();
-}
-bool StaticFile::isValid() {
-  return _valid;
-}
-std::string StaticFile::getFilePath() {
-  return _filePath;
-}
-std::string StaticFile::getContent() {
-  return _content;
-}
-std::string StaticFile::getContentType() {
-  return _contentType;
-}
-long StaticFile::getContentLength() {
-  return _contentLength;
-}
-void StaticFile::readFile() {
-  if (!_read) {
-    _read = true;
-    std::ifstream ifs(_filePath);
-    _valid = ifs.is_open();
-    if (!_valid) {
-      _read = true;
-      return;
+StaticFile::StaticFile(std::string path)
+    : _read(false), _valid(false)
+{
+    auto conf = Configuration::getConf();
+    char cwd[1024];
+    _filePath = getcwd(cwd, 1024);
+    if (conf.end() != conf.find("StaticFile")) {
+        auto staticFileConf = conf["StaticFile"];
+        if (staticFileConf.end() != staticFileConf.find("RootPath"))
+            _filePath = staticFileConf["RootPath"].get<std::string>();
     }
-    std::stringstream ss;
-    ss << ifs.rdbuf();
-    _contentLength = ifs.tellg();
-    _content = ss.str();
+    _filePath.append(path);
+    if (_filePath.at(_filePath.size() - 1) == '/')
+        _filePath.append("index.html");
+    printf("StaticFile :: Static file: %s\n", _filePath.c_str());
+    readFile();
+}
+bool StaticFile::isValid()
+{
+    return _valid;
+}
+std::string StaticFile::getFilePath()
+{
+    return _filePath;
+}
+std::string StaticFile::getContent()
+{
+    return _content;
+}
+std::string StaticFile::getContentType()
+{
+    return _contentType;
+}
+long StaticFile::getContentLength()
+{
+    return _contentLength;
+}
+void StaticFile::readFile()
+{
+    if (!_read) {
+        _read = true;
+        std::ifstream ifs(_filePath);
+        _valid = ifs.is_open();
+        if (!_valid) {
+            _read = true;
+            return;
+        }
+        std::stringstream ss;
+        ss << ifs.rdbuf();
+        _contentLength = ifs.tellg();
+        _content = ss.str();
 
-    std::vector<std::string> result;
-    brutils::split_string(_filePath, result, '.');
-    if (result.empty())
-      _contentType = "text/plain";
-    else {
-      if (mimeMap.end() != mimeMap.find(result.at(result.size() - 1)))
-        _contentType = mimeMap.at(result.at(result.size() - 1));
+        std::vector<std::string> result;
+        brutils::split_string(_filePath, result, '.');
+        if (result.empty())
+            _contentType = "text/plain";
+        else {
+            if (mimeMap.end() != mimeMap.find(result.at(result.size() - 1)))
+                _contentType = mimeMap.at(result.at(result.size() - 1));
+        }
     }
-  }
 }

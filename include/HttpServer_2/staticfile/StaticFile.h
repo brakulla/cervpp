@@ -18,24 +18,25 @@
 
 #include "Configuration.h"
 
-class StaticFile {
- public:
-  explicit StaticFile(std::string path);
-  bool isValid();
-  std::string getFilePath();
-  std::string getContent();
-  std::string getContentType();
-  long getContentLength();
+class StaticFile
+{
+public:
+    explicit StaticFile(std::string path);
+    bool isValid();
+    std::string getFilePath();
+    std::string getContent();
+    std::string getContentType();
+    long getContentLength();
 
- private:
-  bool _read;
-  bool _valid;
-  std::string _filePath;
-  std::string _content;
-  std::string _contentType;
-  long _contentLength;
+private:
+    bool _read;
+    bool _valid;
+    std::string _filePath;
+    std::string _content;
+    std::string _contentType;
+    long _contentLength;
 
-  void readFile();
+    void readFile();
 };
 
 #endif //CERVPP_STATICFILE_H

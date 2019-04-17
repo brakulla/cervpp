@@ -16,33 +16,33 @@
 #include <atomic>
 #include <map>
 
-#include <spdlog/spdlog.h>
+class SimpleTimer
+{
+public:
+    SimpleTimer();
+    ~SimpleTimer();
 
-class SimpleTimer {
- public:
-  SimpleTimer();
-  ~SimpleTimer();
+    int insert(std::function<void()> func);
+    bool start(int id, unsigned int seconds);
+    bool stop(int id);
 
-  int insert(std::function<void()> func);
-  bool start(int id, unsigned int seconds);
-  bool stop(int id);
+private:
+    std::atomic_bool _running;
+    std::thread _thread;
+    void run();
 
- private:
-  std::atomic_bool _running;
-  std::thread _thread;
-  void run();
+private:
+    struct WaitingItem
+    {
+        unsigned int timeout;
+        bool started = false;
+        std::function<void()> function;
+    };
 
- private:
-  struct WaitingItem {
-    unsigned int timeout;
-    bool started = false;
-    std::function<void()> function;
-  };
-
- private:
-  std::mutex _mutex;
-  unsigned int _lastId;
-  std::map<int, std::shared_ptr<WaitingItem>> _waitingList;
+private:
+    std::mutex _mutex;
+    unsigned int _lastId;
+    std::map<int, std::shared_ptr<WaitingItem>> _waitingList;
 };
 
 #endif //CERVPP_SIMPLETIMER_H

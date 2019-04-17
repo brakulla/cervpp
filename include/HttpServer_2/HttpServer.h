@@ -9,7 +9,7 @@
 #include <memory>
 #include <future>
 
-#include <spdlog/spdlog.h>
+#include "brutils/br_object.hpp"
 
 #include "ConnectionHandler.h"
 #include "Connection.h"
@@ -19,26 +19,32 @@
 #include "HttpRequest.h"
 #include "ControllerHandler.h"
 
-class HttpServer {
- public:
-  HttpServer();
-  ~HttpServer();
+class HttpServer : public brutils::br_threaded_object
+{
+public:
+    HttpServer();
+    ~HttpServer() override;
 
-  void StartServer(int port);
-  void waitForFinished();
-  void registerController(std::string path, std::shared_ptr<IController> controller);
+    void joinThread();
 
- private:
-  void newIncomingConnection(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest);
-  void processNewRequest(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest);
+    void registerController(std::string path, std::shared_ptr<IController> controller);
 
- private:
-  std::shared_ptr<ConnectionHandler> _connectionHandler;
-  std::shared_ptr<ThreadPool> _threadPool;
-  std::shared_ptr<ControllerHandler> _controllerHandler;
+private:
+    void newIncomingConnection(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest);
+    void processNewRequest(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest);
 
- private:
-  std::shared_ptr<HttpResponse> _test;
+private:
+    std::unique_ptr<ConnectionHandler> _connectionHandler;
+    std::unique_ptr<ThreadPool> _threadPool;
+    std::unique_ptr<ControllerHandler> _controllerHandler;
+
+private:
+    std::shared_ptr<HttpResponse> _test;
+
+private:
+    brutils::slot<std::shared_ptr<Connection>, std::shared_ptr<HttpRequest>> newRequestReceivedSlot;
+
+
 };
 
 #endif //CERVPP_HTTPSERVER_H
