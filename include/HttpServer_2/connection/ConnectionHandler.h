@@ -20,12 +20,14 @@
 #include <cstring>
 #include <poll.h>
 #include <fcntl.h>
+#include <set>
 
 #include "brutils/br_object.hpp"
 
 #include "Configuration.h"
 #include "Connection.h"
 #include "RequestParser.h"
+#include "SimpleTimer.h"
 
 class ConnectionHandler : brutils::br_object
 {
@@ -33,33 +35,44 @@ public:
     ConnectionHandler(br_object *parent);
     ~ConnectionHandler() override;
 
-    brutils::signal<std::shared_ptr<Connection>, std::shared_ptr<HttpRequest>> newRequestReceived;
+    brutils::signal<std::shared_ptr<Connection>> newIncomingConnection;
 
     void start(unsigned long port, int maxConnectionSize);
     void stop();
     void waitForFinished();
 
-    void requestProcessingFinished(std::shared_ptr<Connection> connection);
-
 private:
     /*! worker thread function */
     void run();
-    void clearTimeoutSockets(struct pollfd *socketList, int &socketListSize);
-    void processSockets(struct pollfd *socketList, int &socketListSize);
-    void parseIncomingData(int sockedFd);
+    void processSockets();
+
+    void acceptNewConnections(int serverSocketFd);
+    void connectionClosedByPeer(int socketFd);
+    void newIncomingData(int socketFd);
+    void socketError(int socketFd);
+    void timeoutOnSocket(int socketFd);
+
+    void addToSocketList(int socketFd);
+    void removeFromSocketList(int socketFd);
 
 private: // conf
     int _maxConnSize;
 
-private:
+private: // server data
     int _serverFd;
-    int _socketListSize;
-    struct pollfd *_socketList;
     struct sockaddr_in _serverAddr;
+
+private:
     std::atomic_bool _running;
     std::thread _thread;
-    std::map<int, std::shared_ptr<RequestParser>> _parserMap;
-    std::map<int, int> _timeoutMap;
+
+    struct pollfd *_socketList;
+    int _socketListSize;
+    std::map<int, std::shared_ptr<Connection>> _activeConnections;
+    std::unique_ptr<brutils::br_threaded_object> _activeSocketParent;
+    std::map<int, int> _socketTimeoutMap;
+
+    SimpleTimer _timer;
 };
 
 #endif //CERVPP_CONNECTIONHANDLER_H

@@ -20,6 +20,8 @@
 #include <string>
 #include <sstream>
 
+#include "brutils/br_object.hpp"
+
 #include "Configuration.h"
 
 enum class ConnectionType
@@ -28,16 +30,25 @@ enum class ConnectionType
     KEEP_ALIVE
 };
 
-class Connection
+class Connection : public brutils::br_object
 {
 public:
-    explicit Connection(int socketFd);
+    explicit Connection(int socketFd, brutils::br_object *parent);
+    ~Connection();
 
+public: // signals
+    brutils::signal<std::string> dataReady;
+    brutils::signal<> disconnected;
+    brutils::signal<> destroyed;
+
+public:
     int getSocketFd();
 
     std::string read();
     void write(const std::string &input);
     void write(int input);
+
+    void close();
 
     ConnectionType getConnectionType() const;
     bool isKeepAlive() const;
