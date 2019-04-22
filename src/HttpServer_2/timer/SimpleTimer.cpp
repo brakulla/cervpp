@@ -2,9 +2,9 @@
 // Created by brakulla on 3/10/19.
 //
 
-#include <thread/SimpleTimer.h>
+#include <timer/SimpleTimer.h>
 
-#include "SimpleTimer.h"
+#include "timer/SimpleTimer.h"
 SimpleTimer::SimpleTimer()
     : _running(true), _lastId(0)
 {
@@ -65,4 +65,12 @@ bool SimpleTimer::stop(int id)
         return false;
     _waitingList[id]->started = false;
     return true;
+}
+
+bool SimpleTimer::remove(int id)
+{
+    bool found = stop(id);
+    if (found)
+        _waitingList.erase(id);
+    return found;
 }

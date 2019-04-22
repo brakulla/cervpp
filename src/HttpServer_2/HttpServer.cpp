@@ -4,13 +4,13 @@
 
 #include "HttpServer.h"
 
-HttpServer::HttpServer() : br_threaded_object(), newRequestReceivedSlot(this)
+HttpServer::HttpServer() : br_threaded_object(), newIncomingConnectionReceived(this)
 {
-    newRequestReceivedSlot.setSlotFunction(
-        std::bind(&HttpServer::newIncomingConnection, this, std::placeholders::_1, std::placeholders::_2));
+    newIncomingConnectionReceived.setSlotFunction(
+        std::bind(&HttpServer::newIncomingConnection, this, std::placeholders::_1));
 
     _connectionHandler = std::make_unique<ConnectionHandler>(this);
-    _connectionHandler->newRequestReceived.connect(newRequestReceivedSlot);
+    _connectionHandler->newIncomingConnection.connect(newIncomingConnectionReceived);
     auto port = Configuration::getValue<int>("Server.Port");
     auto maxConnection = Configuration::getValue<int>("Connection.MaxConnectionCount");
     _connectionHandler->start(port, maxConnection);
@@ -25,33 +25,33 @@ HttpServer::~HttpServer()
         _connectionHandler->stop();
 }
 
-void HttpServer::joinThread()
-{
-    if (_thread.joinable())
-        _thread.join();
-}
-
 void HttpServer::registerController(std::string path, std::shared_ptr<IController> controller)
 {
     _controllerHandler->registerController(path, controller);
 }
 
-void HttpServer::newIncomingConnection(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest)
+void HttpServer::newIncomingConnection(std::shared_ptr<Connection> connection)
 {
-    printf("HttpServer :: New incoming connection %s %d\n",
-           newRequest->getURI().c_str(),
-           (int) connection->getConnectionType());
-    _threadPool->startNewOperation([=]
-                                   {
-                                       processNewRequest(connection, newRequest);
-                                   });
+    printf("HttpServer :: New incoming connection\n"); // TODO: write incoming ip and port
+    // TODO: create a new thread on _threadPool
+    // TODO: create new class for http operations
+    // TODO: pass the instance of newly created http operations class with Connection parameter
+        // TODO: in this class:
+        // TODO: connect Connection.dataReady signal to itself and parse it using a parser
+        // TODO: when a request is ready, run its Controller
+        // TODO: when finished, it should delete itself
+
+//    _threadPool->startNewOperation([=]
+//                                   {
+//                                       processNewRequest(connection, newRequest);
+//                                   });
 }
 void HttpServer::processNewRequest(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest)
 {
     printf("HttpServer :: New request process started\n");
-    _test = std::make_shared<HttpResponse>(connection, newRequest);
-    _test->header("Connection", "keep-alive");
+    _test = std::make_shared<HttpResponse>(connection);
+    _test->version(newRequest->getVersion());
+    _test->header("Connection", newRequest->getHeader("Connection"));
     _controllerHandler->processRequest(newRequest, _test);
-    _connectionHandler->requestProcessingFinished(connection);
     printf("HttpServer :: Request served\n");
 }

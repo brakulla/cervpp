@@ -36,7 +36,7 @@ Connection::Connection(int socketFd, brutils::br_object *parent) : br_object(par
 
 Connection::~Connection()
 {
-    disconnected.emit();
+    destroyed.emit();
 }
 
 int Connection::getSocketFd()
@@ -46,25 +46,17 @@ int Connection::getSocketFd()
 
 std::string Connection::read()
 {
-    if (-1 == _socketFd)
-        throw std::runtime_error("Socket not open");
+    std::scoped_lock lock(_dataMutex);
 
-    std::string output;
-
-    char incomingData[INCOMING_DATA_SIZE];
-    ssize_t totalReceivedSize = 0;
-    ssize_t incomingDataSize;
-    do {
-        incomingDataSize = ::recv(_socketFd, incomingData, sizeof(incomingData), 0);
-        output.append(incomingData);
-        totalReceivedSize += incomingDataSize;
-    } while (incomingDataSize == sizeof(incomingData));
-
-    return output;
+    auto tmp = _dataBuffer;
+    _dataBuffer.clear();
+    return tmp;
 }
 
 void Connection::write(const std::string &input)
 {
+    std::scoped_lock lock(_dataMutex);
+
     printf("Connection :: write : %s\n", input.c_str());
     if (-1 == _socketFd)
         throw std::runtime_error("Socket not open");
@@ -73,11 +65,20 @@ void Connection::write(const std::string &input)
 
 void Connection::write(int input)
 {
+    std::scoped_lock lock(_dataMutex);
+
     printf("Connection :: write : %d\n", input);
     if (-1 == _socketFd)
         throw std::runtime_error("Socket not open");
     auto str = std::to_string(input);
     ::send(_socketFd, str.c_str(), str.size(), 0);
+}
+
+void Connection::close()
+{
+    std::scoped_lock lock(_dataMutex);
+
+    ::close(_socketFd);
 }
 
 ConnectionType Connection::getConnectionType() const
@@ -102,4 +103,28 @@ unsigned long Connection::getKeepAliveTimeout() const
     if (ConnectionType::KEEP_ALIVE == _type)
         return _keepAliveTimeout;
     return 0;
+}
+
+void Connection::readFromSocket()
+{
+    std::scoped_lock lock(_dataMutex);
+
+    if (-1 == _socketFd)
+        throw std::runtime_error("Socket not open");
+
+    char incomingData[INCOMING_DATA_SIZE];
+    ssize_t totalReceivedSize = 0;
+    ssize_t incomingDataSize;
+    do {
+        incomingDataSize = ::recv(_socketFd, incomingData, sizeof(incomingData), 0);
+        _dataBuffer.append(incomingData);
+        totalReceivedSize += incomingDataSize;
+    } while (incomingDataSize == sizeof(incomingData));
+
+    if (totalReceivedSize) {
+        dataReady.emit();
+    } else {
+        close();
+        disconnected.emit();
+    }
 }

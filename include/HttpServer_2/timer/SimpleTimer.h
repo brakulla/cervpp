@@ -25,6 +25,7 @@ public:
     int insert(std::function<void()> func);
     bool start(int id, unsigned int seconds);
     bool stop(int id);
+    bool remove(int id);
 
 private:
     std::atomic_bool _running;

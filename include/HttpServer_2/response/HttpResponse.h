@@ -16,16 +16,22 @@
 
 #include "httpcommon.h"
 #include "Connection.h"
-#include "HttpRequest.h"
 #include "StaticFile.h"
 
 class HttpResponse
 {
+    // TODO: remove conn and req from this class
+    // TODO: create a new class or function that generates a HttpResponse from HttpRequest,
+    //          remove coupling with HttpRequest
+    // TODO: connect the output to Connection instance
+
+    // TODO: set version, connection(header)
 public:
-    HttpResponse(std::shared_ptr<Connection> conn, std::shared_ptr<HttpRequest> req);
+    explicit HttpResponse(std::shared_ptr<Connection> connection);
     ~HttpResponse() = default;
 
 public:
+    void version(HTTP_VERSION version);
     void header(std::string key, std::string value);
     void contentType(std::string type);
     void status(const int status);
@@ -40,7 +46,6 @@ private:
     int _status;
     std::map<std::string, std::string> _headers;
 
-private:
     std::shared_ptr<Connection> _connection;
 
 private:
@@ -50,9 +55,10 @@ private:
 
 private: // auxiliary
     void insertContentTypeHeader(std::string type);
-    void insertDefaultHeader();
+    void insertDefaultHeaders();
     void sendStatusLine();
     void sendHeaders();
+    void sendBody(const std::string &body);
 };
 
 #endif //CERVPP_HTTPRESPONSE_H

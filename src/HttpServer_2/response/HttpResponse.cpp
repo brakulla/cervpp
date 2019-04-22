@@ -4,12 +4,14 @@
 
 #include "HttpResponse.h"
 
-HttpResponse::HttpResponse(std::shared_ptr<Connection> conn, std::shared_ptr<HttpRequest> req) : _status(200)
+HttpResponse::HttpResponse(std::shared_ptr<Connection> connection) : _status(200)
 {
-    _connection = conn;
-    _version = req->getVersion();
-    header("Connection", req->getHeader("Connection"));
-//  _headers = req->getHeaders();
+    _connection = connection;
+}
+
+void HttpResponse::version(HTTP_VERSION version)
+{
+    _version = version;
 }
 
 void HttpResponse::header(std::string key, std::string value)
@@ -90,8 +92,7 @@ void HttpResponse::sendResponse(const std::string &body)
         header("Content-Length", std::to_string(body.size() + 4));
     sendStatusLine();
     sendHeaders();
-    if (!body.empty())
-        _connection->write(body);
+    sendBody(body);
 }
 
 void HttpResponse::insertContentTypeHeader(std::string type)
@@ -100,7 +101,7 @@ void HttpResponse::insertContentTypeHeader(std::string type)
         header("Content-Type", type);
 }
 
-void HttpResponse::insertDefaultHeader()
+void HttpResponse::insertDefaultHeaders()
 {
     if (_headers.end() == _headers.find("Date")) {
         std::ostringstream osDate;
@@ -125,7 +126,7 @@ void HttpResponse::sendStatusLine()
 
 void HttpResponse::sendHeaders()
 {
-    insertDefaultHeader();
+    insertDefaultHeaders();
     for (auto &item: _headers) {
         _connection->write(item.first);
         _connection->write(": ");
@@ -133,4 +134,10 @@ void HttpResponse::sendHeaders()
         _connection->write("\r\n");
     }
     _connection->write("\r\n");
+}
+
+void HttpResponse::sendBody(const std::string &body)
+{
+    if (!body.empty())
+        _connection->write(body);
 }

@@ -4,8 +4,6 @@
  * Description
  */
 
-#include <request/HttpRequest.h>
-
 #include "HttpRequest.h"
 
 using json = nlohmann::json;
@@ -42,7 +40,7 @@ void HttpRequest::addHeader(const std::string key, const std::string value)
 }
 void HttpRequest::setRawBody(std::string body)
 {
-    _body = body;
+    _body = std::move(body);
 }
 HTTP_METHOD HttpRequest::getMethod() const
 {

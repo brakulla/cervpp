@@ -15,7 +15,7 @@
 
 #include "Configuration.h"
 #include "Thread.h"
-#include "SimpleTimer.h"
+#include "timer/SimpleTimer.h"
 
 class ThreadPool
 {

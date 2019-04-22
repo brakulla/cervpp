@@ -25,24 +25,23 @@ public:
     HttpServer();
     ~HttpServer() override;
 
-    void joinThread();
-
     void registerController(std::string path, std::shared_ptr<IController> controller);
 
 private:
-    void newIncomingConnection(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest);
+    void newIncomingConnection(std::shared_ptr<Connection> connection);
     void processNewRequest(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest);
 
 private:
     std::unique_ptr<ConnectionHandler> _connectionHandler;
     std::unique_ptr<ThreadPool> _threadPool;
     std::unique_ptr<ControllerHandler> _controllerHandler;
+    std::map<std::shared_ptr<Connection>, std::unique_ptr<RequestParser>> _parserMap;
 
 private:
     std::shared_ptr<HttpResponse> _test;
 
 private:
-    brutils::slot<std::shared_ptr<Connection>, std::shared_ptr<HttpRequest>> newRequestReceivedSlot;
+    brutils::slot<std::shared_ptr<Connection>> newIncomingConnectionReceived;
 
 
 };

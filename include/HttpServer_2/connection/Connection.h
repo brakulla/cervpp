@@ -16,6 +16,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <stdexcept>
+#include <mutex>
 
 #include <string>
 #include <sstream>
@@ -37,17 +38,17 @@ public:
     ~Connection();
 
 public: // signals
-    brutils::signal<std::string> dataReady;
-    brutils::signal<> disconnected;
+    brutils::signal<> dataReady; // emitted by ConnectionHandler
+    brutils::signal<> disconnected; // emitted by ConnectionHandler
     brutils::signal<> destroyed;
 
 public:
     int getSocketFd();
 
+    void readFromSocket();
     std::string read();
     void write(const std::string &input);
     void write(int input);
-
     void close();
 
     ConnectionType getConnectionType() const;
@@ -56,10 +57,16 @@ public:
     unsigned long getKeepAliveTimeout() const;
 
 private:
+    std::mutex _dataMutex;
+
+private:
     int _socketFd;
     ConnectionType _type;
     unsigned long _maxConnectionCount;
     unsigned long _keepAliveTimeout; // in seconds
+
+private:
+    std::string _dataBuffer;
 };
 
 #endif //CERVPP_TCPCONNECTION_H

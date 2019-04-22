@@ -12,7 +12,6 @@
 
 #include <brutils/string_utils.hpp>
 
-#include "Connection.h"
 #include "HttpRequest.h"
 
 class RequestParser
@@ -21,6 +20,7 @@ public:
     RequestParser();
 
     std::shared_ptr<HttpRequest> parse(std::string input);
+
 private:
     bool partialParse();
     void parseRequestLine(std::string line);
@@ -29,7 +29,6 @@ private:
 
 private:
     std::string _unprocessedData;
-    std::vector<std::string> _inputLines;
     std::shared_ptr<HttpRequest> _request;
     int _bodyLength;
 

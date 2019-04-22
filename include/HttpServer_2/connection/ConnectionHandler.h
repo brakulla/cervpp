@@ -27,7 +27,7 @@
 #include "Configuration.h"
 #include "Connection.h"
 #include "RequestParser.h"
-#include "SimpleTimer.h"
+#include "timer/SimpleTimer.h"
 
 class ConnectionHandler : brutils::br_object
 {
@@ -54,6 +54,7 @@ private:
 
     void addToSocketList(int socketFd);
     void removeFromSocketList(int socketFd);
+    void removeConnection(std::shared_ptr<Connection> connection);
 
 private: // conf
     int _maxConnSize;
@@ -70,9 +71,9 @@ private:
     int _socketListSize;
     std::map<int, std::shared_ptr<Connection>> _activeConnections;
     std::unique_ptr<brutils::br_threaded_object> _activeSocketParent;
-    std::map<int, int> _socketTimeoutMap;
+    std::map<int, int> _socketTimeoutMap; // std::map<socketFd, timeoutId>
 
-    SimpleTimer _timer;
+    SimpleTimer _timeoutTimer;
 };
 
 #endif //CERVPP_CONNECTIONHANDLER_H

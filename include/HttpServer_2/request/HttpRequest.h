@@ -6,8 +6,6 @@
 #ifndef CERVPP_HTTPREQUEST_H
 #define CERVPP_HTTPREQUEST_H
 
-#include "Connection.h"
-
 #include <memory>
 #include <string>
 #include <map>
