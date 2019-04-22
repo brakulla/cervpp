@@ -58,7 +58,7 @@ void TcpSocket::write(const std::string &input)
 {
     std::scoped_lock lock(_dataMutex);
 
-    printf("TcpSocket :: write : %s\n", input.c_str());
+//    printf("TcpSocket :: write : %s\n", input.c_str());
     if (-1 == _socketFd)
         throw std::runtime_error("Socket not open");
     ::send(_socketFd, input.c_str(), input.size(), 0);
@@ -68,7 +68,7 @@ void TcpSocket::write(int input)
 {
     std::scoped_lock lock(_dataMutex);
 
-    printf("TcpSocket :: write : %d\n", input);
+//    printf("TcpSocket :: write : %d\n", input);
     if (-1 == _socketFd)
         throw std::runtime_error("Socket not open");
     auto str = std::to_string(input);

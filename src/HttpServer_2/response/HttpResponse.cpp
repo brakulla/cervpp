@@ -59,7 +59,7 @@ void HttpResponse::render(std::string const filePath)
 void HttpResponse::render(StaticFile &staticFile)
 {
     if (!staticFile.isValid()) {
-        printf("HttpResponse :: Rendered file is not valid\n");
+        printf("HttpResponse :: File not found!\n");
         status(404);
         render("404.html");
     } else {

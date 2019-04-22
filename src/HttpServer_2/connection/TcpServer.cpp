@@ -74,8 +74,7 @@ void TcpServer::run()
     _socketListSize = 1;
 
     while (_running) {
-        // TODO: retrieve below timeout from configuration
-        printf("TcpServer :: Starting polling\n");
+//        printf("TcpServer :: Starting polling\n");
         int pollRes = ::poll(_socketList, (nfds_t) _socketListSize, -1);
         if (0 > pollRes) {
             printf("TcpServer :: Error with the sockets! Error: %d - %s", errno, strerror(errno));
@@ -87,7 +86,7 @@ void TcpServer::run()
             continue;
         }
         else {
-            printf("TcpServer :: Activity detected on sockets. Poll result: %d\n", pollRes);
+//            printf("TcpServer :: Activity detected on sockets. Poll result: %d\n", pollRes);
             processSockets();
         }
     }
@@ -103,7 +102,7 @@ void TcpServer::processSockets()
 
     // client sockets
     for (int i = 1; i < _socketListSize; ++i) {
-        printf("TcpServer :: Client socket revents: %d\n", _socketList[i].revents);
+//        printf("TcpServer :: Client socket revents: %d\n", _socketList[i].revents);
         if (0 == _socketList[i].revents) {
             // no operation on this socket
             continue;
@@ -151,7 +150,7 @@ void TcpServer::acceptNewConnections(int serverSocketFd)
                                           });
             _timeoutTimer.start(id, SOCKET_TIMEOUT);
             _socketTimeoutMap.insert(std::make_pair(newSocket, id));
-            printf("TcpServer :: New incoming connection processed\n");
+//            printf("TcpServer :: New incoming connection processed\n");
             this->newIncomingConnection.emit(connection);
         }
     }
@@ -166,7 +165,7 @@ void TcpServer::connectionClosedByPeer(int socketFd)
 
 void TcpServer::newIncomingData(int socketFd)
 {
-    printf("TcpServer :: Incoming data on connection %d\n", socketFd);
+//    printf("TcpServer :: Incoming data on connection %d\n", socketFd);
     auto connection = _activeConnections.at(socketFd);
     _timeoutTimer.start(_socketTimeoutMap.at(socketFd), SOCKET_TIMEOUT);
     connection->readFromSocket();
@@ -181,7 +180,7 @@ void TcpServer::socketError(int socketFd)
 
 void TcpServer::timeoutOnSocket(int socketFd)
 {
-    printf("TcpServer :: Timeout ocurred on socket %d\n", socketFd);
+//    printf("TcpServer :: Timeout ocurred on socket %d\n", socketFd);
     auto connection = _activeConnections.at(socketFd);
     removeConnection(connection);
 }

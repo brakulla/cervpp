@@ -16,10 +16,11 @@
 class ServerThread
 {
 public:
-    ServerThread();
+    ServerThread(int threadId);
     ServerThread(const ServerThread &) = delete;
     ~ServerThread();
 
+    int getThreadId();
     void start();
     void stop();
     bool isExecuting();
@@ -30,6 +31,7 @@ private:
     std::atomic_bool _executing;
     std::mutex _mutex;
     std::thread _thread;
+    int _threadId;
 
 private:
     void run();

@@ -4,10 +4,10 @@
 
 #include "ServerThread.h"
 
-ServerThread::ServerThread()
-    : _running(false), _executing(false)
+ServerThread::ServerThread(int threadId)
+    : _running(false), _executing(false), _threadId(threadId)
 {
-    printf("Thread :: Initialized\n");
+    printf("Thread :: Initialized - %d\n", _threadId);
 }
 ServerThread::~ServerThread()
 {
@@ -19,9 +19,13 @@ ServerThread::~ServerThread()
     if (_thread.joinable())
         _thread.join();
 }
+int ServerThread::getThreadId()
+{
+    return _threadId;
+}
 void ServerThread::start()
 {
-    printf("Thread :: Starting\n");
+    printf("Thread :: Starting - %d\n", _threadId);
     std::unique_lock lock(_mutex);
     _running = true;
     _thread = std::thread(&ServerThread::run, this);
@@ -34,16 +38,16 @@ void ServerThread::run()
         auto func = _queue.pop();
         std::unique_lock lock(_mutex);
         _executing = true;
-        printf("Thread :: Starting execution\n");
+        printf("Thread :: Starting execution - %d\n", _threadId);
         func();
-        printf("Thread :: Executing finished, going idle\n");
+        printf("Thread :: Executing finished, going idle - %d\n", _threadId);
         _executing = false;
     }
 }
 void ServerThread::stop()
 {
     if (_running)
-        printf("Thread :: Stopping\n");
+        printf("Thread :: Stopping - %d\n", _threadId);
     _running = false;
 }
 bool ServerThread::isExecuting()
@@ -53,7 +57,7 @@ bool ServerThread::isExecuting()
 }
 void ServerThread::execute(std::function<void()> func)
 {
-    printf("Thread :: New execution received\n");
+    printf("Thread :: New execution received - %d\n", _threadId);
     std::unique_lock lock(_mutex);
     _queue.push(func);
 }

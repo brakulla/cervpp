@@ -57,7 +57,7 @@ public:
     unsigned long getKeepAliveTimeout() const;
 
 private:
-    std::mutex _dataMutex;
+    std::recursive_mutex _dataMutex;
 
 private:
     int _socketFd;

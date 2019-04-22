@@ -28,14 +28,14 @@ void RequestParser::dataReady()
 
 std::shared_ptr<HttpRequest> RequestParser::parse(std::string input)
 {
-    printf("RequestParser :: Input: %s\n", input.c_str());
+//    printf("RequestParser :: Input: %s\n", input.c_str());
     _unprocessedData.append(input);
     bool result = partialParse();
     if (result) {
         printf("RequestParser :: Parsing finished\n");
         return _request;
     }
-    printf("RequestParser :: Parsing continues\n");
+//    printf("RequestParser :: Parsing continues\n");
     return nullptr;
 }
 
@@ -44,24 +44,24 @@ bool RequestParser::partialParse()
     std::vector<std::string> lines;
     brutils::split_string(_unprocessedData, lines, "\r\n");
     while (!lines.empty()) { // we have a line to process
-        printf("RequestParser :: _unprocessedData.size(): %d\n", (int) _unprocessedData.size());
-        printf("RequestParser :: lines.size(): %d, lines.at(0): %s\n", (int) lines.size(), lines.at(0).c_str());
+//        printf("RequestParser :: _unprocessedData.size(): %d\n", (int) _unprocessedData.size());
+//        printf("RequestParser :: lines.size(): %d, lines.at(0): %s\n", (int) lines.size(), lines.at(0).c_str());
         switch (_parsingStatus) {
             case REQUEST_LINE:parseRequestLine(lines.at(0));
-                printf("RequestParser :: Before RequestLine _unprocessedData.size(): %d\n",
-                       (int) _unprocessedData.size());
+//                printf("RequestParser :: Before RequestLine _unprocessedData.size(): %d\n",
+//                       (int) _unprocessedData.size());
                 if (lines.at(0).size() + 2 < _unprocessedData.size())
                     _unprocessedData.erase(0, lines.at(0).size() + 2);
                 else _unprocessedData.erase(0, _unprocessedData.size());
-                printf("RequestParser :: After RequestLine _unprocessedData.size(): %d\n",
-                       (int) _unprocessedData.size());
+//                printf("RequestParser :: After RequestLine _unprocessedData.size(): %d\n",
+//                       (int) _unprocessedData.size());
                 _parsingStatus = HEADER_LINES;
                 printf("RequestParser :: Parsing status changed to HEADER_LINES\n");
                 break;
             case HEADER_LINES:
                 if (lines.at(0).empty()) {
-                    printf("Line empty, remaining data: %s\n", _unprocessedData.c_str());
-                    _unprocessedData.clear();
+//                    printf("Line empty, remaining data: %s\n", _unprocessedData.c_str());
+//                    _unprocessedData.clear();
                     if (!_request->getHeader("Content-Length").empty()) {
                         _parsingStatus = BODY;
                         printf("RequestParser :: Parsing status: BODY\n");
@@ -74,17 +74,17 @@ bool RequestParser::partialParse()
                 }
                 else {
                     parseHeaderLine(lines.at(0));
-                    printf("RequestParser :: Before HeaderLine _unprocessedData.size(): %d\n",
-                           (int) _unprocessedData.size());
+//                    printf("RequestParser :: Before HeaderLine _unprocessedData.size(): %d\n",
+//                           (int) _unprocessedData.size());
                     if (lines.at(0).size() + 2 < _unprocessedData.size())
                         _unprocessedData.erase(0, lines.at(0).size() + 2);
                     else _unprocessedData.erase(0, _unprocessedData.size());
-                    printf("RequestParser :: After HeaderLine _unprocessedData.size(): %d\n",
-                           (int) _unprocessedData.size());
+//                    printf("RequestParser :: After HeaderLine _unprocessedData.size(): %d\n",
+//                           (int) _unprocessedData.size());
                 }
                 break;
             case BODY:parseBodyLine(lines.at(0));
-                printf("RequestParser :: Before Body _unprocessedData.size(): %d\n", (int) _unprocessedData.size());
+//                printf("RequestParser :: Before Body _unprocessedData.size(): %d\n", (int) _unprocessedData.size());
                 if (lines.at(0).size() + 2 < _unprocessedData.size()) {
                     _unprocessedData.erase(0, lines.at(0).size() + 2);
                     _bodyLength -= lines.at(0).size() + 2;
@@ -93,7 +93,7 @@ bool RequestParser::partialParse()
                     _unprocessedData.erase(0, _unprocessedData.size());
                     _bodyLength -= _unprocessedData.size();
                 }
-                printf("RequestParser :: After Body _unprocessedData.size(): %d\n", (int) _unprocessedData.size());
+//                printf("RequestParser :: After Body _unprocessedData.size(): %d\n", (int) _unprocessedData.size());
                 if (_bodyLength <= 0) {
                     _parsingStatus = FINISHED;
                     printf("RequestParser :: Parsing status: FINISHED\n");
@@ -110,7 +110,7 @@ bool RequestParser::partialParse()
 
 void RequestParser::parseRequestLine(std::string line)
 {
-    printf("RequestParser :: Parsing request line: %s\n", line.c_str());
+//    printf("RequestParser :: Parsing request line: %s\n", line.c_str());
 
     std::smatch match;
     bool res = std::regex_match(line, match, std::regex(R"regex(^(\w+)\s(.+)\s(\w+\/[0-9]\.[0-9])$)regex"));
@@ -124,7 +124,7 @@ void RequestParser::parseRequestLine(std::string line)
 
 void RequestParser::parseHeaderLine(std::string line)
 {
-    printf("RequestParser :: Parsing header line: %s\n", line.c_str());
+//    printf("RequestParser :: Parsing header line: %s\n", line.c_str());
 
     std::smatch match;
     bool res = std::regex_match(line, match, std::regex(R"regex(^(.+):\s(.+)$)regex"));
@@ -135,6 +135,6 @@ void RequestParser::parseHeaderLine(std::string line)
 
 void RequestParser::parseBodyLine(std::string line)
 {
-    printf("RequestParser :: Parsing body line: %s\n", line.c_str());
+//    printf("RequestParser :: Parsing body line: %s\n", line.c_str());
     _request->_body.append(line).append("\r\n");
 }

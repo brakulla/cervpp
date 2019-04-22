@@ -49,25 +49,20 @@ void ServerThreadPool::startNewOperation(std::function<void()> func)
     _dataMutex.unlock();
 
     if (!foundIdleThread) {
-        printf("ThreadPool :: Creating new thread\n");
-        std::shared_ptr<ServerThread> thread = std::make_shared<ServerThread>();
-        int id = _timer.insert([&]
+        std::shared_ptr<ServerThread> thread = std::make_shared<ServerThread>(_lastId++);
+        printf("ThreadPool :: New thread created with id: %d\n", thread->getThreadId());
+        int id = _timer.insert([=]
                                {
-                                   printf("ThreadPool :: Timeout occured, deleting thread\n");
                                    _dataMutex.lock();
-                                   printf("ThreadPool :: Locked for erase\n");
+                                   printf("ThreadPool :: Deleting idle thread: %d\n", thread->getThreadId());
                                    _threadList.erase(id);
-                                   printf("ThreadPool :: Erased\n");
                                    _dataMutex.unlock();
-                                   printf("ThreadPool :: Unlocked after erased\n");
                                    _condVar.notify_one();
-                                   printf("ThreadPool :: Notified\n");
                                });
         _dataMutex.lock();
         _threadList.insert(std::make_pair(id, thread));
         _dataMutex.unlock();
         thread->start();
-        printf("ThreadPool :: Executing function on thread\n");
         thread->execute(func);
         _timer.start(id, _timeoutDuration);
     }

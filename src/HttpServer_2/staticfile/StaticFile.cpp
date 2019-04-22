@@ -97,7 +97,7 @@ StaticFile::StaticFile(std::string path)
     _filePath.append(path);
     if (_filePath.at(_filePath.size() - 1) == '/')
         _filePath.append("index.html");
-    printf("StaticFile :: Static file: %s\n", _filePath.c_str());
+//    printf("StaticFile :: Static file: %s\n", _filePath.c_str());
     readFile();
 }
 bool StaticFile::isValid()

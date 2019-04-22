@@ -15,7 +15,6 @@ void ControllerHandler::processRequest(std::shared_ptr<HttpRequest> request, std
 {
     printf("ControllerHandler :: Processing new request with path: %s\n", request->getURI().c_str());
     for (auto &item: _controllerMap) {
-        printf("Controller: %s", item.first.c_str());
         if (brutils::str_startsWith(request->getURI(), item.first)) {
             item.second->process(request, response);
             return;
