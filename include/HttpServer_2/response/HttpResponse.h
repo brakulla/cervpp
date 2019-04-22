@@ -15,30 +15,23 @@
 #include <nlohmann/json.hpp>
 
 #include "httpcommon.h"
-#include "Connection.h"
+#include "TcpSocket.h"
 #include "StaticFile.h"
 
 class HttpResponse
 {
-    // TODO: remove conn and req from this class
-    // TODO: create a new class or function that generates a HttpResponse from HttpRequest,
-    //          remove coupling with HttpRequest
-    // TODO: connect the output to Connection instance
-
-    // TODO: set version, connection(header)
 public:
-    explicit HttpResponse(std::shared_ptr<Connection> connection);
+    explicit HttpResponse(HTTP_VERSION version, std::shared_ptr<TcpSocket> connection);
     ~HttpResponse() = default;
 
 public:
-    void version(HTTP_VERSION version);
     void header(std::string key, std::string value);
     void contentType(std::string type);
     void status(const int status);
     void send();
     void send(std::string body);
     void sendJson(nlohmann::json &body);
-    void render(std::string const filePath);
+    void render(std::string filePath);
     void render(StaticFile &staticFile);
 
 private:
@@ -46,7 +39,7 @@ private:
     int _status;
     std::map<std::string, std::string> _headers;
 
-    std::shared_ptr<Connection> _connection;
+    std::shared_ptr<TcpSocket> _connection;
 
 private:
     void sendResponse();

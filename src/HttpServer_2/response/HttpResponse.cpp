@@ -4,14 +4,10 @@
 
 #include "HttpResponse.h"
 
-HttpResponse::HttpResponse(std::shared_ptr<Connection> connection) : _status(200)
-{
-    _connection = connection;
-}
-
-void HttpResponse::version(HTTP_VERSION version)
+HttpResponse::HttpResponse(HTTP_VERSION version, std::shared_ptr<TcpSocket> connection) : _status(200)
 {
     _version = version;
+    _connection = connection;
 }
 
 void HttpResponse::header(std::string key, std::string value)
@@ -63,9 +59,9 @@ void HttpResponse::render(std::string const filePath)
 void HttpResponse::render(StaticFile &staticFile)
 {
     if (!staticFile.isValid()) {
-        status(404);
-        sendResponse();
         printf("HttpResponse :: Rendered file is not valid\n");
+        status(404);
+        render("404.html");
     } else {
         insertContentTypeHeader(staticFile.getContentType());
         header("Content-Length", std::to_string(staticFile.getContentLength()));

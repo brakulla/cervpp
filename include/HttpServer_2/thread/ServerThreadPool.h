@@ -14,14 +14,14 @@
 #include <condition_variable>
 
 #include "Configuration.h"
-#include "Thread.h"
-#include "timer/SimpleTimer.h"
+#include "ServerThread.h"
+#include "SimpleTimer.h"
 
-class ThreadPool
+class ServerThreadPool
 {
 public:
-    ThreadPool();
-    ~ThreadPool() = default;
+    ServerThreadPool();
+    ~ServerThreadPool() = default;
 
     void startNewOperation(std::function<void()> func);
 
@@ -36,7 +36,7 @@ private:
 
 private:
     unsigned int _lastId;
-    std::map<int, std::shared_ptr<Thread>> _threadList;
+    std::map<int, std::shared_ptr<ServerThread>> _threadList;
     SimpleTimer _timer;
 };
 

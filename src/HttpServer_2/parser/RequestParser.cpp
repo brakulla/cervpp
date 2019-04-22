@@ -4,13 +4,28 @@
  * Description
  */
 
-#include "RequestParser.h"
+#include "parser/RequestParser.h"
 
-RequestParser::RequestParser()
-    : _parsingStatus(REQUEST_LINE), _request(std::make_shared<HttpRequest>())
+RequestParser::RequestParser(std::shared_ptr<TcpSocket> connection, brutils::br_object *parent) :
+    br_object(parent),
+    _connection(connection),
+    dataReadySlot(this),
+    newRequestSignal(this),
+    _parsingStatus(REQUEST_LINE),
+    _request(std::make_shared<HttpRequest>())
 {
-
+    dataReadySlot.setSlotFunction(
+        std::bind(&RequestParser::dataReady, this));
+    connection->dataReady.connect(dataReadySlot);
 }
+
+void RequestParser::dataReady()
+{
+    auto request = parse(_connection->read());
+    if (request)
+        newRequestSignal.emit(request, _connection);
+}
+
 std::shared_ptr<HttpRequest> RequestParser::parse(std::string input)
 {
     printf("RequestParser :: Input: %s\n", input.c_str());
@@ -23,6 +38,7 @@ std::shared_ptr<HttpRequest> RequestParser::parse(std::string input)
     printf("RequestParser :: Parsing continues\n");
     return nullptr;
 }
+
 bool RequestParser::partialParse()
 {
     std::vector<std::string> lines;
@@ -91,6 +107,7 @@ bool RequestParser::partialParse()
     }
     return false;
 }
+
 void RequestParser::parseRequestLine(std::string line)
 {
     printf("RequestParser :: Parsing request line: %s\n", line.c_str());
@@ -104,6 +121,7 @@ void RequestParser::parseRequestLine(std::string line)
     _request->setURI(match[2].str());
     _request->setVersion(match[3].str());
 }
+
 void RequestParser::parseHeaderLine(std::string line)
 {
     printf("RequestParser :: Parsing header line: %s\n", line.c_str());
@@ -114,6 +132,7 @@ void RequestParser::parseHeaderLine(std::string line)
         return;
     _request->addHeader(match[1].str(), match[2].str());
 }
+
 void RequestParser::parseBodyLine(std::string line)
 {
     printf("RequestParser :: Parsing body line: %s\n", line.c_str());

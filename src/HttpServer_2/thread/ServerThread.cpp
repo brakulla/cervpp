@@ -2,16 +2,14 @@
 // Created by brakulla on 3/10/19.
 //
 
-#include <thread/Thread.h>
+#include "ServerThread.h"
 
-#include "Thread.h"
-
-Thread::Thread()
+ServerThread::ServerThread()
     : _running(false), _executing(false)
 {
     printf("Thread :: Initialized\n");
 }
-Thread::~Thread()
+ServerThread::~ServerThread()
 {
     _queue.stop();
     if (_running)
@@ -21,14 +19,14 @@ Thread::~Thread()
     if (_thread.joinable())
         _thread.join();
 }
-void Thread::start()
+void ServerThread::start()
 {
     printf("Thread :: Starting\n");
     std::unique_lock lock(_mutex);
     _running = true;
-    _thread = std::thread(&Thread::run, this);
+    _thread = std::thread(&ServerThread::run, this);
 }
-void Thread::run()
+void ServerThread::run()
 {
     while (_running) {
         if (!_queue.waitPop())
@@ -42,18 +40,18 @@ void Thread::run()
         _executing = false;
     }
 }
-void Thread::stop()
+void ServerThread::stop()
 {
     if (_running)
         printf("Thread :: Stopping\n");
     _running = false;
 }
-bool Thread::isExecuting()
+bool ServerThread::isExecuting()
 {
     std::unique_lock lock(_mutex);
     return _executing;
 }
-void Thread::execute(std::function<void()> func)
+void ServerThread::execute(std::function<void()> func)
 {
     printf("Thread :: New execution received\n");
     std::unique_lock lock(_mutex);

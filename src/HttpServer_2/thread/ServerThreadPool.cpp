@@ -2,11 +2,11 @@
 // Created by brakulla on 3/10/19.
 //
 
-#include <thread/ThreadPool.h>
+#include <thread/ServerThreadPool.h>
 
-#include "ThreadPool.h"
+#include "ServerThreadPool.h"
 
-ThreadPool::ThreadPool()
+ServerThreadPool::ServerThreadPool()
     : _lastId(0), _maxThreadSize(5), _timeoutDuration(5)
 {
     auto conf = Configuration::getConf();
@@ -18,7 +18,8 @@ ThreadPool::ThreadPool()
             _timeoutDuration = threadConf["ThreadTimeout"];
     }
 }
-void ThreadPool::startNewOperation(std::function<void()> func)
+
+void ServerThreadPool::startNewOperation(std::function<void()> func)
 {
     printf("ThreadPool :: Starting new operation\n");
 
@@ -49,7 +50,7 @@ void ThreadPool::startNewOperation(std::function<void()> func)
 
     if (!foundIdleThread) {
         printf("ThreadPool :: Creating new thread\n");
-        std::shared_ptr<Thread> thread = std::make_shared<Thread>();
+        std::shared_ptr<ServerThread> thread = std::make_shared<ServerThread>();
         int id = _timer.insert([&]
                                {
                                    printf("ThreadPool :: Timeout occured, deleting thread\n");

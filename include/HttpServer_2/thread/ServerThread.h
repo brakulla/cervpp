@@ -13,12 +13,12 @@
 
 #include <brutils/queue_pc.hpp>
 
-class Thread
+class ServerThread
 {
 public:
-    Thread();
-    Thread(const Thread &) = delete;
-    ~Thread();
+    ServerThread();
+    ServerThread(const ServerThread &) = delete;
+    ~ServerThread();
 
     void start();
     void stop();

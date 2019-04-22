@@ -11,39 +11,32 @@
 
 #include "brutils/br_object.hpp"
 
-#include "ConnectionHandler.h"
-#include "Connection.h"
-#include "ThreadPool.h"
-#include "RequestParser.h"
-#include "HttpResponse.h"
-#include "HttpRequest.h"
+#include "Configuration.h"
+
+#include "TcpServer.h"
+#include "TcpSocket.h"
+#include "ParserThread.h"
+
 #include "ControllerHandler.h"
+
+#include "ServerThreadPool.h"
 
 class HttpServer : public brutils::br_threaded_object
 {
 public:
     HttpServer();
-    ~HttpServer() override;
 
     void registerController(std::string path, std::shared_ptr<IController> controller);
 
-private:
-    void newIncomingConnection(std::shared_ptr<Connection> connection);
-    void processNewRequest(std::shared_ptr<Connection> connection, std::shared_ptr<HttpRequest> newRequest);
+private: // slots
+    brutils::slot<std::shared_ptr<HttpRequest>, std::shared_ptr<TcpSocket>> newRequestSlot;
+    void newRequestReceived(std::shared_ptr<HttpRequest> req, std::shared_ptr<TcpSocket> conn);
 
 private:
-    std::unique_ptr<ConnectionHandler> _connectionHandler;
-    std::unique_ptr<ThreadPool> _threadPool;
+    std::unique_ptr<TcpServer> _tcpServer;
+    std::unique_ptr<ParserThread> _parser;
     std::unique_ptr<ControllerHandler> _controllerHandler;
-    std::map<std::shared_ptr<Connection>, std::unique_ptr<RequestParser>> _parserMap;
-
-private:
-    std::shared_ptr<HttpResponse> _test;
-
-private:
-    brutils::slot<std::shared_ptr<Connection>> newIncomingConnectionReceived;
-
-
+    std::unique_ptr<ServerThreadPool> _threadPool;
 };
 
 #endif //CERVPP_HTTPSERVER_H

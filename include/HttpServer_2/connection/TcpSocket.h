@@ -5,7 +5,7 @@
 
 /*
  * A wrapper class for socket connections. Used mostly simple writing and reading.
- * RAII is not used since socket life-time may be longer than Connection object.
+ * RAII is not used since socket life-time may be longer than TcpSocket object.
  */
 
 #ifndef CERVPP_TCPCONNECTION_H
@@ -31,15 +31,15 @@ enum class ConnectionType
     KEEP_ALIVE
 };
 
-class Connection : public brutils::br_object
+class TcpSocket : public brutils::br_object
 {
 public:
-    explicit Connection(int socketFd, brutils::br_object *parent);
-    ~Connection();
+    explicit TcpSocket(int socketFd, brutils::br_object *parent);
+    ~TcpSocket();
 
 public: // signals
-    brutils::signal<> dataReady; // emitted by ConnectionHandler
-    brutils::signal<> disconnected; // emitted by ConnectionHandler
+    brutils::signal<> dataReady; // emitted by TcpServer
+    brutils::signal<> disconnected; // emitted by TcpServer
     brutils::signal<> destroyed;
 
 public:

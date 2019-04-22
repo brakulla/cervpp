@@ -4,16 +4,17 @@
  * Description
  */
 
-#include <connection/Connection.h>
+#include <connection/TcpSocket.h>
 
-#include "Connection.h"
+#include "TcpSocket.h"
 
 #define INCOMING_DATA_SIZE 1024
 
-Connection::Connection(int socketFd, brutils::br_object *parent) : br_object(parent),
-    dataReady(this),
-    disconnected(this),
-    destroyed(this),
+TcpSocket::TcpSocket(int socketFd, brutils::br_object *parent) :
+    br_object(parent),
+    dataReady(parent),
+    disconnected(parent),
+    destroyed(parent),
     _socketFd(socketFd),
     _type(ConnectionType::KEEP_ALIVE),
     _maxConnectionCount(100),
@@ -23,8 +24,8 @@ Connection::Connection(int socketFd, brutils::br_object *parent) : br_object(par
     _type = ConnectionType::KEEP_ALIVE;
     _maxConnectionCount = 100;
     _keepAliveTimeout = 5;
-    if (conf.end() == conf.find("Connection")) {
-        auto connConf = conf["Connection"];
+    if (conf.end() == conf.find("TcpSocket")) {
+        auto connConf = conf["TcpSocket"];
         if (connConf.end() != connConf.find("KeepAlive"))
             _type = connConf["KeepAlive"].get<bool>() ? ConnectionType::KEEP_ALIVE : ConnectionType::CLOSE;
         if (connConf.end() != connConf.find("MaxConnectionCount"))
@@ -34,17 +35,17 @@ Connection::Connection(int socketFd, brutils::br_object *parent) : br_object(par
     }
 }
 
-Connection::~Connection()
+TcpSocket::~TcpSocket()
 {
     destroyed.emit();
 }
 
-int Connection::getSocketFd()
+int TcpSocket::getSocketFd()
 {
     return _socketFd;
 }
 
-std::string Connection::read()
+std::string TcpSocket::read()
 {
     std::scoped_lock lock(_dataMutex);
 
@@ -53,59 +54,59 @@ std::string Connection::read()
     return tmp;
 }
 
-void Connection::write(const std::string &input)
+void TcpSocket::write(const std::string &input)
 {
     std::scoped_lock lock(_dataMutex);
 
-    printf("Connection :: write : %s\n", input.c_str());
+    printf("TcpSocket :: write : %s\n", input.c_str());
     if (-1 == _socketFd)
         throw std::runtime_error("Socket not open");
     ::send(_socketFd, input.c_str(), input.size(), 0);
 }
 
-void Connection::write(int input)
+void TcpSocket::write(int input)
 {
     std::scoped_lock lock(_dataMutex);
 
-    printf("Connection :: write : %d\n", input);
+    printf("TcpSocket :: write : %d\n", input);
     if (-1 == _socketFd)
         throw std::runtime_error("Socket not open");
     auto str = std::to_string(input);
     ::send(_socketFd, str.c_str(), str.size(), 0);
 }
 
-void Connection::close()
+void TcpSocket::close()
 {
     std::scoped_lock lock(_dataMutex);
 
     ::close(_socketFd);
 }
 
-ConnectionType Connection::getConnectionType() const
+ConnectionType TcpSocket::getConnectionType() const
 {
     return _type;
 }
 
-bool Connection::isKeepAlive() const
+bool TcpSocket::isKeepAlive() const
 {
     return _type == ConnectionType::KEEP_ALIVE;
 }
 
-unsigned long Connection::getKeepAliveMax() const
+unsigned long TcpSocket::getKeepAliveMax() const
 {
     if (ConnectionType::KEEP_ALIVE == _type)
         return _maxConnectionCount;
     return 0;
 }
 
-unsigned long Connection::getKeepAliveTimeout() const
+unsigned long TcpSocket::getKeepAliveTimeout() const
 {
     if (ConnectionType::KEEP_ALIVE == _type)
         return _keepAliveTimeout;
     return 0;
 }
 
-void Connection::readFromSocket()
+void TcpSocket::readFromSocket()
 {
     std::scoped_lock lock(_dataMutex);
 
@@ -122,6 +123,7 @@ void Connection::readFromSocket()
     } while (incomingDataSize == sizeof(incomingData));
 
     if (totalReceivedSize) {
+        printf("TcpSocket :: Emitting dataReady with size: %d\n", totalReceivedSize);
         dataReady.emit();
     } else {
         close();

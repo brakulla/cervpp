@@ -24,18 +24,17 @@
 
 #include "brutils/br_object.hpp"
 
-#include "Configuration.h"
-#include "Connection.h"
-#include "RequestParser.h"
+#include "TcpSocket.h"
+#include "parser/RequestParser.h"
 #include "timer/SimpleTimer.h"
 
-class ConnectionHandler : brutils::br_object
+class TcpServer : brutils::br_object
 {
 public:
-    ConnectionHandler(br_object *parent);
-    ~ConnectionHandler() override;
+    TcpServer(br_object *parent);
+    ~TcpServer() override;
 
-    brutils::signal<std::shared_ptr<Connection>> newIncomingConnection;
+    brutils::signal<std::shared_ptr<TcpSocket>> newIncomingConnection;
 
     void start(unsigned long port, int maxConnectionSize);
     void stop();
@@ -54,7 +53,7 @@ private:
 
     void addToSocketList(int socketFd);
     void removeFromSocketList(int socketFd);
-    void removeConnection(std::shared_ptr<Connection> connection);
+    void removeConnection(std::shared_ptr<TcpSocket> connection);
 
 private: // conf
     int _maxConnSize;
@@ -69,8 +68,7 @@ private:
 
     struct pollfd *_socketList;
     int _socketListSize;
-    std::map<int, std::shared_ptr<Connection>> _activeConnections;
-    std::unique_ptr<brutils::br_threaded_object> _activeSocketParent;
+    std::map<int, std::shared_ptr<TcpSocket>> _activeConnections;
     std::map<int, int> _socketTimeoutMap; // std::map<socketFd, timeoutId>
 
     SimpleTimer _timeoutTimer;
