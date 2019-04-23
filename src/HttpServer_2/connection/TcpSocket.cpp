@@ -122,7 +122,7 @@ void TcpSocket::readFromSocket()
         totalReceivedSize += incomingDataSize;
     } while (incomingDataSize == sizeof(incomingData));
 
-    if (totalReceivedSize) {
+    if (totalReceivedSize) { // TODO: there may not be an error, socket may not be disconnected, it is unblocking after all
         printf("TcpSocket :: Emitting dataReady with size: %d\n", totalReceivedSize);
         dataReady.emit();
     } else {
