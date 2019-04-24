@@ -14,10 +14,10 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <arpa/inet.h>
 #include <unistd.h>
 #include <stdexcept>
 #include <mutex>
+#include <arpa/inet.h>
 
 #include <string>
 #include <sstream>

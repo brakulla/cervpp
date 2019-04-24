@@ -9,9 +9,14 @@
 
 TcpServer::TcpServer(br_object *parent) :
     br_object(parent),
-    newIncomingConnection(this)
+    newIncomingConnection(this),
+    timeoutOccurred(this)
 {
     _running = false;
+
+    timeoutOccurred.setSlotFunction(
+        std::bind(&TcpServer::timeoutOnSocket, this, std::placeholders::_1));
+    SimpleTimer::getInstance().timeout.connect(timeoutOccurred);
 }
 
 TcpServer::~TcpServer()
@@ -76,7 +81,6 @@ void TcpServer::run()
     _socketListSize = 1;
 
     while (_running) {
-//        printf("TcpServer :: Starting polling\n");
         int pollRes = ::poll(_socketList, (nfds_t) _socketListSize, -1);
         if (0 > pollRes) {
             printf("TcpServer :: Error with the sockets! Error: %d - %s", errno, strerror(errno));
@@ -99,20 +103,25 @@ void TcpServer::run()
 void TcpServer::processSockets()
 {
     // server socket
-    if (POLLIN == _socketList[0].revents)
+    if (POLLIN == _socketList[0].revents) {
         acceptNewConnections(_socketList[0].fd);
+    } else if (0 == _socketList[0].revents) {
+        // nothing happened on server socket
+    } else {
+        printf("TcpServer :: Unknown server event -> server socket revents: %d\n", _socketList[0].revents);
+    }
 
     // client sockets
     for (int i = 1; i < _socketListSize; ++i) {
-//        printf("TcpServer :: Client socket revents: %d\n", _socketList[i].revents);
         if (0 == _socketList[i].revents) {
             // no operation on this socket
             continue;
-        } else if (POLLHUP == _socketList[i].revents) {
-            connectionClosedByPeer(_socketList[i].fd);
+        } else if (POLLHUP == (_socketList[i].revents & POLLHUP)) {
+            connectionClosed(_socketList[i].fd);
         } else if (POLLIN == _socketList[i].revents) {
             newIncomingData(_socketList[i].fd);
         } else {
+            printf("TcpServer :: socket error %d - revents: %d\n", _socketList[i].fd, _socketList[i].revents);
             socketError(_socketList[i].fd);
         }
     }
@@ -139,18 +148,12 @@ void TcpServer::acceptNewConnections(int serverSocketFd)
             connection->close();
         }
         else {
-            printf("TcpServer :: New incoming connection\n");
+            printf("TcpServer :: New incoming connection: %d\n", newSocket);
             addToSocketList(newSocket);
             auto connection = std::make_shared<TcpSocket>(newSocket, _serverFd, this->getRootObject());
             _activeConnections.insert(std::make_pair(newSocket, connection));
-            int id = SimpleTimer::getInstance().insert([&]
-                                          {
-                                              for (auto &item: _socketTimeoutMap) {
-                                                  if (item.second == id)
-                                                      timeoutOnSocket(item.first);
-                                              }
-                                          });
-            SimpleTimer::getInstance().start(id, SOCKET_TIMEOUT);
+            int id = SimpleTimer::getInstance().start(SOCKET_TIMEOUT);
+//            printf("TcpServer :: new timer created with id %d\n", id);
             _socketTimeoutMap.insert(std::make_pair(newSocket, id));
 //            printf("TcpServer :: New incoming connection processed\n");
             this->newIncomingConnection.emit(connection);
@@ -158,9 +161,9 @@ void TcpServer::acceptNewConnections(int serverSocketFd)
     }
 }
 
-void TcpServer::connectionClosedByPeer(int socketFd)
+void TcpServer::connectionClosed(int socketFd)
 {
-    printf("TcpServer :: TcpSocket closed by peer %d\n", socketFd);
+//    printf("TcpServer :: TcpSocket closed %d\n", socketFd);
     auto connection = _activeConnections.at(socketFd);
     removeConnection(connection);
 }
@@ -169,7 +172,7 @@ void TcpServer::newIncomingData(int socketFd)
 {
 //    printf("TcpServer :: Incoming data on connection %d\n", socketFd);
     auto connection = _activeConnections.at(socketFd);
-    SimpleTimer::getInstance().start(_socketTimeoutMap.at(socketFd), SOCKET_TIMEOUT);
+    SimpleTimer::getInstance().restart(_socketTimeoutMap.at(socketFd), SOCKET_TIMEOUT);
     connection->readFromSocket();
 }
 
@@ -180,11 +183,21 @@ void TcpServer::socketError(int socketFd)
     removeConnection(connection);
 }
 
-void TcpServer::timeoutOnSocket(int socketFd)
+void TcpServer::timeoutOnSocket(int timerId)
 {
-//    printf("TcpServer :: Timeout ocurred on socket %d\n", socketFd);
-    auto connection = _activeConnections.at(socketFd);
-    removeConnection(connection);
+//    printf("TcpServer :: timeout received with id: %d\n", timerId);
+    std::shared_ptr<TcpSocket> connection;
+    for (auto &item: _socketTimeoutMap) {
+        if (item.second == timerId) {
+            connection = _activeConnections.at(item.first);
+            break;
+        }
+    }
+    if (connection) {
+//        printf("TcpServer :: Timeout! Removing socket: %d\n", connection->getSocketFd());
+//        removeConnection(connection);
+        ::shutdown(connection->getSocketFd(), SHUT_RDWR);
+    }
 }
 
 void TcpServer::addToSocketList(int socketFd)
@@ -207,6 +220,7 @@ void TcpServer::removeFromSocketList(int socketFd)
         return;
 
     for (int index = removedIndex; index < _socketListSize; ++index) {
+        _socketList[index].revents = 0;
         _socketList[index].fd = _socketList[index+1].fd;
         _socketList[index].events = _socketList[index+1].events;
     }
@@ -215,11 +229,13 @@ void TcpServer::removeFromSocketList(int socketFd)
 
 void TcpServer::removeConnection(std::shared_ptr<TcpSocket> connection)
 {
-    connection->close();
-    connection->disconnected.emit();
+//    printf("TcpServer :: removing connection: %d\n", connection->getSocketFd());
     removeFromSocketList(connection->getSocketFd());
     SimpleTimer::getInstance().remove(_socketTimeoutMap.at(connection->getSocketFd()));
     _activeConnections.erase(connection->getSocketFd());
+    connection->close();
+//    printf("Connection closed\n");
+    connection->disconnected.emit();
 }
 
 //void TcpServer::parseIncomingData(int sockedFd)

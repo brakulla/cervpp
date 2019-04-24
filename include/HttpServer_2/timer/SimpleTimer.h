@@ -17,6 +17,7 @@
 #include <map>
 
 #include <brutils/singleton_crtp.hpp>
+#include <brutils/br_object.hpp>
 
 class SimpleTimer : public brutils::singleton_crtp<SimpleTimer>
 {
@@ -24,8 +25,10 @@ public:
     SimpleTimer(token);
     ~SimpleTimer();
 
-    int insert(std::function<void()> func);
-    bool start(int id, unsigned int seconds);
+    brutils::signal<int> timeout;
+
+    int start(unsigned int seconds);
+    bool restart(int id, unsigned int seconds);
     bool stop(int id);
     bool remove(int id);
 
@@ -39,11 +42,10 @@ private:
     {
         unsigned int timeout;
         bool started = false;
-        std::function<void()> function;
     };
 
 private:
-    std::mutex _mutex;
+    std::recursive_mutex _mutex;
     unsigned int _lastId;
     std::map<int, std::shared_ptr<WaitingItem>> _waitingList;
 };

@@ -25,6 +25,8 @@ public:
 
     void startNewOperation(std::function<void()> func);
 
+    brutils::slot<int> timeoutOccurred;
+
 private: // config
     unsigned int _timeoutDuration;
     unsigned int _maxThreadSize;
@@ -37,6 +39,9 @@ private:
 private:
     unsigned int _lastId;
     std::map<int, std::shared_ptr<ServerThread>> _threadList;
+
+private:
+    void timeoutOnThread(int id);
 };
 
 #endif //CERVPP_THREADPOOL_H

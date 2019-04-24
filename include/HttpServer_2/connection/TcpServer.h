@@ -20,13 +20,12 @@
 #include <cstring>
 #include <poll.h>
 #include <fcntl.h>
-#include <set>
 
 #include "brutils/br_object.hpp"
 
 #include "TcpSocket.h"
-#include "parser/RequestParser.h"
-#include "timer/SimpleTimer.h"
+#include "RequestParser.h"
+#include "SimpleTimer.h"
 
 class TcpServer : brutils::br_object
 {
@@ -46,14 +45,17 @@ private:
     void processSockets();
 
     void acceptNewConnections(int serverSocketFd);
-    void connectionClosedByPeer(int socketFd);
+    void connectionClosed(int socketFd);
     void newIncomingData(int socketFd);
     void socketError(int socketFd);
-    void timeoutOnSocket(int socketFd);
+    void timeoutOnSocket(int timerId);
 
     void addToSocketList(int socketFd);
     void removeFromSocketList(int socketFd);
     void removeConnection(std::shared_ptr<TcpSocket> connection);
+
+private:
+    brutils::slot<int> timeoutOccurred;
 
 private: // conf
     int _maxConnSize;

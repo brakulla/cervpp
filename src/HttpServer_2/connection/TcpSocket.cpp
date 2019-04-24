@@ -45,6 +45,7 @@ TcpSocket::TcpSocket(int socketFd, int serverFd, brutils::br_object *parent) :
         if (0 == res) {
             _peerSockAddr = peerAddr;
         }
+//        printf("TcpSocket :: Local address: %s\n", localAddressStr().c_str());
     }
 
     // get server addr info
@@ -55,6 +56,7 @@ TcpSocket::TcpSocket(int socketFd, int serverFd, brutils::br_object *parent) :
         if (0 == res) {
             _serverSockAddr = serverAddr;
         }
+//        printf("TcpSocket :: Peer address: %s\n", peerAddressStr().c_str());
     }
 }
 
