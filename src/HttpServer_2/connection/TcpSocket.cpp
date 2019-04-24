@@ -10,11 +10,12 @@
 
 #define INCOMING_DATA_SIZE 1024
 
-TcpSocket::TcpSocket(int socketFd, brutils::br_object *parent) :
+TcpSocket::TcpSocket(int socketFd, int serverFd, brutils::br_object *parent) :
     br_object(parent),
     dataReady(parent),
     disconnected(parent),
     destroyed(parent),
+    socketError(parent),
     _socketFd(socketFd),
     _type(ConnectionType::KEEP_ALIVE),
     _maxConnectionCount(100),
@@ -33,6 +34,24 @@ TcpSocket::TcpSocket(int socketFd, brutils::br_object *parent) :
         if (connConf.end() != connConf.find("KeepAliveTimeout"))
             _keepAliveTimeout = connConf["KeepAliveTimeout"].get<int>();
     }
+
+    // get peer addr info
+    struct sockaddr_in peerAddr {0};
+    socklen_t addrLength = sizeof(peerAddr);
+    int res = getpeername(_socketFd, (struct sockaddr*)&peerAddr, &addrLength);
+    if (0 == res) {
+        _peerSockAddr = peerAddr;
+    }
+
+    // get server addr info
+    if (-1 != serverFd) {
+        struct sockaddr_in serverAddr {0};
+        socklen_t serverAddrLength = sizeof(serverAddr);
+        int res = getsockname(serverFd, (struct sockaddr*)&serverAddr, &serverAddrLength);
+        if (0 == res) {
+            _serverSockAddr = serverAddr;
+        }
+    }
 }
 
 TcpSocket::~TcpSocket()
@@ -43,6 +62,40 @@ TcpSocket::~TcpSocket()
 int TcpSocket::getSocketFd()
 {
     return _socketFd;
+}
+
+uint32_t TcpSocket::peerAddress() const
+{
+    return _peerSockAddr.sin_addr.s_addr;
+}
+
+std::string TcpSocket::peerAddressStr() const
+{
+    char* addr = inet_ntoa(_peerSockAddr.sin_addr);
+    std::string addressStr = addr;
+    return addressStr;
+}
+
+uint16_t TcpSocket::peerPort() const
+{
+    return _peerSockAddr.sin_port;
+}
+
+uint32_t TcpSocket::localAddress() const
+{
+    return _serverSockAddr.sin_addr.s_addr;
+}
+
+std::string TcpSocket::localAddressStr() const
+{
+    char* addr = inet_ntoa(_serverSockAddr.sin_addr);
+    std::string addressStr = addr;
+    return addressStr;
+}
+
+uint16_t TcpSocket::localPort() const
+{
+    return _serverSockAddr.sin_port;
 }
 
 std::string TcpSocket::read()
@@ -118,15 +171,29 @@ void TcpSocket::readFromSocket()
     ssize_t incomingDataSize;
     do {
         incomingDataSize = ::recv(_socketFd, incomingData, sizeof(incomingData), 0);
-        _dataBuffer.append(incomingData);
-        totalReceivedSize += incomingDataSize;
+        if (-1 == incomingDataSize) {
+            int errorNo = errno;
+            if (EAGAIN == errorNo || EWOULDBLOCK == errorNo) {
+                // no incoming data
+                break;
+            } else {
+                // socket error
+                socketError.emit();
+                break;
+            }
+        } else if (0 == incomingDataSize) {
+            // closed by peer
+            close();
+            disconnected.emit();
+            break;
+        } else {
+            // read incoming data
+            _dataBuffer.append(incomingData);
+            totalReceivedSize += incomingDataSize;
+        }
     } while (incomingDataSize == sizeof(incomingData));
 
-    if (totalReceivedSize) { // TODO: there may not be an error, socket may not be disconnected, it is unblocking after all
-        printf("TcpSocket :: Emitting dataReady with size: %d\n", totalReceivedSize);
+    if (0 < totalReceivedSize) {
         dataReady.emit();
-    } else {
-        close();
-        disconnected.emit();
     }
 }
