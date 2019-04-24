@@ -28,6 +28,8 @@ public:
 
     void registerController(std::string path, std::shared_ptr<IController> controller);
 
+    void joinThread();
+
 private: // slots
     brutils::slot<std::shared_ptr<HttpRequest>, std::shared_ptr<TcpSocket>> newRequestSlot;
     void newRequestReceived(std::shared_ptr<HttpRequest> req, std::shared_ptr<TcpSocket> conn);

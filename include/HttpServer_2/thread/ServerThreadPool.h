@@ -37,7 +37,6 @@ private:
 private:
     unsigned int _lastId;
     std::map<int, std::shared_ptr<ServerThread>> _threadList;
-    SimpleTimer _timer;
 };
 
 #endif //CERVPP_THREADPOOL_H

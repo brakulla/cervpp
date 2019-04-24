@@ -4,7 +4,7 @@
  * Description
  */
 
-#include "parser/RequestParser.h"
+#include "RequestParser.h"
 
 RequestParser::RequestParser(std::shared_ptr<TcpSocket> connection, brutils::br_object *parent) :
     br_object(parent),

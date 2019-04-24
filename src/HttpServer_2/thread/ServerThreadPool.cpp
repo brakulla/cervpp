@@ -40,10 +40,10 @@ void ServerThreadPool::startNewOperation(std::function<void()> func)
     for (auto &item: _threadList) {
         if (!item.second->isExecuting()) {
             printf("ThreadPool :: Idle thread found, executing in it\n");
-            _timer.stop(item.first);
+            SimpleTimer::getInstance().stop(item.first);
             foundIdleThread = true;
             item.second->execute(func);
-            _timer.start(item.first, _timeoutDuration);
+            SimpleTimer::getInstance().start(item.first, _timeoutDuration);
         }
     }
     _dataMutex.unlock();
@@ -51,7 +51,7 @@ void ServerThreadPool::startNewOperation(std::function<void()> func)
     if (!foundIdleThread) {
         std::shared_ptr<ServerThread> thread = std::make_shared<ServerThread>(_lastId++);
         printf("ThreadPool :: New thread created with id: %d\n", thread->getThreadId());
-        int id = _timer.insert([=]
+        int id = SimpleTimer::getInstance().insert([=]
                                {
                                    _dataMutex.lock();
                                    printf("ThreadPool :: Deleting idle thread: %d\n", thread->getThreadId());
@@ -64,6 +64,6 @@ void ServerThreadPool::startNewOperation(std::function<void()> func)
         _dataMutex.unlock();
         thread->start();
         thread->execute(func);
-        _timer.start(id, _timeoutDuration);
+        SimpleTimer::getInstance().start(id, _timeoutDuration);
     }
 }

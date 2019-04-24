@@ -2,21 +2,23 @@
 // Created by brakulla on 3/10/19.
 //
 
-#include <timer/SimpleTimer.h>
+#include "SimpleTimer.h"
 
-#include "timer/SimpleTimer.h"
-SimpleTimer::SimpleTimer()
+SimpleTimer::SimpleTimer(token)
     : _running(true), _lastId(0)
 {
     _thread = std::thread(&SimpleTimer::run, this);
 }
+
 SimpleTimer::~SimpleTimer()
 {
     _running = false;
     _thread.join();
 }
+
 void SimpleTimer::run()
 {
+    printf("SimpleTimer :: started\n");
     while (_running) {
         for (auto &&item: _waitingList) {
             if (!item.second->started)
@@ -31,6 +33,7 @@ void SimpleTimer::run()
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
+
 int SimpleTimer::insert(std::function<void()> func)
 {
     std::unique_lock lock(_mutex);
@@ -41,6 +44,7 @@ int SimpleTimer::insert(std::function<void()> func)
     _waitingList.insert(std::make_pair(id, item));
     return id;
 }
+
 bool SimpleTimer::start(int id, unsigned int seconds)
 {
     std::unique_lock lock(_mutex);
@@ -51,6 +55,7 @@ bool SimpleTimer::start(int id, unsigned int seconds)
     _waitingList[id]->timeout = seconds;
     return true;
 }
+
 bool SimpleTimer::stop(int id)
 {
     std::unique_lock lock(_mutex);

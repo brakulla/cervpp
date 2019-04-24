@@ -70,8 +70,6 @@ private:
     int _socketListSize;
     std::map<int, std::shared_ptr<TcpSocket>> _activeConnections;
     std::map<int, int> _socketTimeoutMap; // std::map<socketFd, timeoutId>
-
-    SimpleTimer _timeoutTimer;
 };
 
 #endif //CERVPP_CONNECTIONHANDLER_H

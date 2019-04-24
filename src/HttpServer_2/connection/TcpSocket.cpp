@@ -4,9 +4,6 @@
  * Description
  */
 
-#include <connection/TcpSocket.h>
-#include <bits/socket_type.h>
-
 #include "TcpSocket.h"
 
 #define DEFAULT_READ_BUFFER_SIZE 1024*1024

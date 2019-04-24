@@ -16,10 +16,12 @@
 #include <atomic>
 #include <map>
 
-class SimpleTimer
+#include <brutils/singleton_crtp.hpp>
+
+class SimpleTimer : public brutils::singleton_crtp<SimpleTimer>
 {
 public:
-    SimpleTimer();
+    SimpleTimer(token);
     ~SimpleTimer();
 
     int insert(std::function<void()> func);

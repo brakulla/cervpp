@@ -7,7 +7,9 @@
 #define INCOMING_DATA_SIZE 1024
 #define SOCKET_TIMEOUT 5
 
-TcpServer::TcpServer(br_object *parent) : br_object(parent), newIncomingConnection(this)
+TcpServer::TcpServer(br_object *parent) :
+    br_object(parent),
+    newIncomingConnection(this)
 {
     _running = false;
 }
@@ -133,22 +135,22 @@ void TcpServer::acceptNewConnections(int serverSocketFd)
         }
         else if (_socketListSize == _maxConnSize) { // TODO: instead, wait until one connection is closed (or close one idle connection)
             printf("TcpServer :: Reached maximum connection size, closing new connection\n");
-            auto connection = std::make_shared<TcpSocket>(newSocket, this->getParent());
+            auto connection = std::make_shared<TcpSocket>(newSocket, _serverFd, this->getRootObject());
             connection->close();
         }
         else {
             printf("TcpServer :: New incoming connection\n");
             addToSocketList(newSocket);
-            auto connection = std::make_shared<TcpSocket>(newSocket, this->getParent());
+            auto connection = std::make_shared<TcpSocket>(newSocket, _serverFd, this->getRootObject());
             _activeConnections.insert(std::make_pair(newSocket, connection));
-            int id = _timeoutTimer.insert([&]
+            int id = SimpleTimer::getInstance().insert([&]
                                           {
                                               for (auto &item: _socketTimeoutMap) {
                                                   if (item.second == id)
                                                       timeoutOnSocket(item.first);
                                               }
                                           });
-            _timeoutTimer.start(id, SOCKET_TIMEOUT);
+            SimpleTimer::getInstance().start(id, SOCKET_TIMEOUT);
             _socketTimeoutMap.insert(std::make_pair(newSocket, id));
 //            printf("TcpServer :: New incoming connection processed\n");
             this->newIncomingConnection.emit(connection);
@@ -167,7 +169,7 @@ void TcpServer::newIncomingData(int socketFd)
 {
 //    printf("TcpServer :: Incoming data on connection %d\n", socketFd);
     auto connection = _activeConnections.at(socketFd);
-    _timeoutTimer.start(_socketTimeoutMap.at(socketFd), SOCKET_TIMEOUT);
+    SimpleTimer::getInstance().start(_socketTimeoutMap.at(socketFd), SOCKET_TIMEOUT);
     connection->readFromSocket();
 }
 
@@ -216,7 +218,7 @@ void TcpServer::removeConnection(std::shared_ptr<TcpSocket> connection)
     connection->close();
     connection->disconnected.emit();
     removeFromSocketList(connection->getSocketFd());
-    _timeoutTimer.remove(_socketTimeoutMap.at(connection->getSocketFd()));
+    SimpleTimer::getInstance().remove(_socketTimeoutMap.at(connection->getSocketFd()));
     _activeConnections.erase(connection->getSocketFd());
 }
 

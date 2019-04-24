@@ -29,6 +29,12 @@ void HttpServer::registerController(std::string path, std::shared_ptr<IControlle
     _controllerHandler->registerController(path, std::move(controller));
 }
 
+void HttpServer::joinThread()
+{
+    if (_thread.joinable())
+        _thread.join();
+}
+
 void HttpServer::newRequestReceived(std::shared_ptr<HttpRequest> req, std::shared_ptr<TcpSocket> conn)
 {
     std::shared_ptr<HttpResponse> res = std::make_shared<HttpResponse>(req->getVersion(), conn);
