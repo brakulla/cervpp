@@ -32,29 +32,6 @@ enum class ConnectionType
     CLOSE,
     KEEP_ALIVE
 };
-//
-//class HostAddress {
-//public:
-//    HostAddress(struct sockaddr *address) {}
-//    virtual ~HostAddress() = default;
-//
-//    virtual std::string getString() = 0;
-//};
-//
-//class HostAddress_IPv4 : public HostAddress
-//{
-//public:
-//    HostAddress_IPv4(struct sockaddr *address) : HostAddress(address) {
-//
-//    }
-//    ~HostAddress_IPv4() = default;
-//
-//private:
-//    u_int8_t q0;
-//    u_int8_t q1;
-//    u_int8_t q2;
-//    u_int8_t q3;
-//};
 
 class TcpSocket : public brutils::br_object
 {
@@ -69,11 +46,18 @@ public: // signals
     brutils::signal<> socketError; // TODO: implement (fill)
     // connected (should only be emmitted when used connectToHost
 
-public: // TODO: implement below methods
-//    void connectToHost(address, port, openmode);
-//    bool isValid(); true for ready for use, false otherwise
-//    int readBufferSize();
-//    void setReadBufferSize(size);
+public:
+    int getSocketFd() const;
+    bool isValid() const;
+
+    bool connectToHost(std::string address, uint16_t port);
+    bool connectToHost(uint32_t address, uint16_t port);
+
+    std::string read();
+    void write(const std::string &input);
+    void write(int input);
+
+    void close();
 
     uint32_t peerAddress() const;
     std::string peerAddressStr() const;
@@ -83,19 +67,19 @@ public: // TODO: implement below methods
     std::string localAddressStr() const;
     uint16_t localPort() const;
 
-public:
-    int getSocketFd();
-
-    void readFromSocket();
-    std::string read();
-    void write(const std::string &input);
-    void write(int input);
-    void close();
+    int readBufferSize() const;
+    void setReadBufferSize(unsigned long size);
 
     ConnectionType getConnectionType() const;
     bool isKeepAlive() const;
     unsigned long getKeepAliveMax() const;
     unsigned long getKeepAliveTimeout() const;
+
+public:
+    void readFromSocket();
+
+private:
+    bool connectToHost(struct sockaddr_in addr);
 
 private:
     std::recursive_mutex _dataMutex;

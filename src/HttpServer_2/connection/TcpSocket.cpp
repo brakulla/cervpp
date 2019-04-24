@@ -5,9 +5,11 @@
  */
 
 #include <connection/TcpSocket.h>
+#include <bits/socket_type.h>
 
 #include "TcpSocket.h"
 
+#define DEFAULT_READ_BUFFER_SIZE 1024*1024
 #define INCOMING_DATA_SIZE 1024
 
 TcpSocket::TcpSocket(int socketFd, int serverFd, brutils::br_object *parent) :
@@ -35,12 +37,17 @@ TcpSocket::TcpSocket(int socketFd, int serverFd, brutils::br_object *parent) :
             _keepAliveTimeout = connConf["KeepAliveTimeout"].get<int>();
     }
 
+    // set read buffer size
+    _dataBuffer.reserve(DEFAULT_READ_BUFFER_SIZE);
+
     // get peer addr info
-    struct sockaddr_in peerAddr {0};
-    socklen_t addrLength = sizeof(peerAddr);
-    int res = getpeername(_socketFd, (struct sockaddr*)&peerAddr, &addrLength);
-    if (0 == res) {
-        _peerSockAddr = peerAddr;
+    if (-1 != socketFd) {
+        struct sockaddr_in peerAddr{0};
+        socklen_t addrLength = sizeof(peerAddr);
+        int res = getpeername(_socketFd, (struct sockaddr *) &peerAddr, &addrLength);
+        if (0 == res) {
+            _peerSockAddr = peerAddr;
+        }
     }
 
     // get server addr info
@@ -59,43 +66,44 @@ TcpSocket::~TcpSocket()
     destroyed.emit();
 }
 
-int TcpSocket::getSocketFd()
+int TcpSocket::getSocketFd() const
 {
     return _socketFd;
 }
 
-uint32_t TcpSocket::peerAddress() const
+bool TcpSocket::isValid() const
 {
-    return _peerSockAddr.sin_addr.s_addr;
+    return _socketFd != -1;
 }
 
-std::string TcpSocket::peerAddressStr() const
+bool TcpSocket::connectToHost(std::string address, uint16_t port)
 {
-    char* addr = inet_ntoa(_peerSockAddr.sin_addr);
-    std::string addressStr = addr;
-    return addressStr;
+    if (-1 != _socketFd)
+        return false;
+
+    _socketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+    if (-1 == _socketFd)
+        return false;
+
+    struct sockaddr_in addr {0};
+    inet_pton(AF_INET, address.c_str(), &addr.sin_addr);
+    addr.sin_port = port;
+    return connectToHost(addr);
 }
 
-uint16_t TcpSocket::peerPort() const
+bool TcpSocket::connectToHost(uint32_t address, uint16_t port)
 {
-    return _peerSockAddr.sin_port;
-}
+    if (-1 != _socketFd)
+        return false;
 
-uint32_t TcpSocket::localAddress() const
-{
-    return _serverSockAddr.sin_addr.s_addr;
-}
+    _socketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+    if (-1 == _socketFd)
+        return false;
 
-std::string TcpSocket::localAddressStr() const
-{
-    char* addr = inet_ntoa(_serverSockAddr.sin_addr);
-    std::string addressStr = addr;
-    return addressStr;
-}
-
-uint16_t TcpSocket::localPort() const
-{
-    return _serverSockAddr.sin_port;
+    struct sockaddr_in addr {0};
+    addr.sin_addr.s_addr = address;
+    addr.sin_port = port;
+    return connectToHost(addr);
 }
 
 std::string TcpSocket::read()
@@ -133,6 +141,51 @@ void TcpSocket::close()
     std::scoped_lock lock(_dataMutex);
 
     ::close(_socketFd);
+    _socketFd = -1;
+}
+
+uint32_t TcpSocket::peerAddress() const
+{
+    return _peerSockAddr.sin_addr.s_addr;
+}
+
+std::string TcpSocket::peerAddressStr() const
+{
+    char* addr = inet_ntoa(_peerSockAddr.sin_addr);
+    std::string addressStr = addr;
+    return addressStr;
+}
+
+uint16_t TcpSocket::peerPort() const
+{
+    return _peerSockAddr.sin_port;
+}
+
+uint32_t TcpSocket::localAddress() const
+{
+    return _serverSockAddr.sin_addr.s_addr;
+}
+
+std::string TcpSocket::localAddressStr() const
+{
+    char* addr = inet_ntoa(_serverSockAddr.sin_addr);
+    std::string addressStr = addr;
+    return addressStr;
+}
+
+uint16_t TcpSocket::localPort() const
+{
+    return _serverSockAddr.sin_port;
+}
+
+int TcpSocket::readBufferSize() const
+{
+    return _dataBuffer.capacity();
+}
+
+void TcpSocket::setReadBufferSize(unsigned long size)
+{
+    _dataBuffer.reserve(size);
 }
 
 ConnectionType TcpSocket::getConnectionType() const
@@ -196,4 +249,11 @@ void TcpSocket::readFromSocket()
     if (0 < totalReceivedSize) {
         dataReady.emit();
     }
+}
+
+bool TcpSocket::connectToHost(struct sockaddr_in addr)
+{
+    socklen_t addrLen = sizeof(addr);
+    int res = connect(_socketFd, (struct sockaddr*)&addr, addrLen);
+    return 0 == res;
 }
