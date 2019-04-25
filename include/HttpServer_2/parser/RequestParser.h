@@ -29,12 +29,12 @@ private: // slots
 
 private:
     void dataReady();
-    std::shared_ptr<HttpRequest> parse(std::string input);
+    std::shared_ptr<HttpRequest> parse(std::string &input);
 
     bool partialParse();
-    void parseRequestLine(std::string line);
-    void parseHeaderLine(std::string line);
-    void parseBodyLine(std::string line);
+    void parseRequestLine(std::string &line);
+    void parseHeaderLine(std::string &line);
+    void parseBodyLine(std::string &line);
 
 private:
     std::string _unprocessedData;
