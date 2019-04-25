@@ -29,6 +29,7 @@ void RequestParser::dataReady()
     auto request = parse(input);
     if (request)
         newRequestSignal.emit(request, _connection);
+    request.reset();
 }
 
 std::shared_ptr<HttpRequest> RequestParser::parse(std::string input)
@@ -36,7 +37,7 @@ std::shared_ptr<HttpRequest> RequestParser::parse(std::string input)
     _buffer.append(input);
     bool result = partialParse();
     if (result) {
-        printf("RequestParser :: Parsing finished\n");
+        _buffer.clear();
         return _request;
     }
     return nullptr;
@@ -44,6 +45,9 @@ std::shared_ptr<HttpRequest> RequestParser::parse(std::string input)
 
 bool RequestParser::partialParse()
 {
+    if (!_request)
+        _request = std::make_shared<HttpRequest>();
+
     std::string_view data = _buffer;
     auto begin = _buffer.cbegin();
     auto last = _buffer.cbegin();
@@ -83,8 +87,6 @@ bool RequestParser::partialParse()
                 if (!_request->getHeader("Content-Length").empty()) {
                     begin = last;
                     last += std::stol(_request->getHeader("Content-Length"));
-                    printf("Content-Length: %s, %ld", _request->getHeader("Content-Length").c_str(),
-                        std::stol(_request->getHeader("Content-Length")));
                     parseBodyLine(begin, last);
                 }
                 _parsingStatus = FINISHED;
@@ -97,62 +99,9 @@ bool RequestParser::partialParse()
             }
         }
     }
+    _buffer.erase(_buffer.begin(), last);
 
     return false;
-//
-//    std::vector<std::string> lines;
-//    brutils::split_string(_buffer, lines, "\r\n");
-//    while (!lines.empty()) { // we have a line to process
-//        switch (_parsingStatus) {
-//            case REQUEST_LINE:
-//                parseRequestLine(lines.at(0));
-//                if (lines.at(0).size() + 2 < _buffer.size())
-//                    _buffer.erase(0, lines.at(0).size() + 2);
-//                else _buffer.erase(0, _buffer.size());
-//                _parsingStatus = HEADER_LINES;
-//                printf("RequestParser :: Parsing status changed to HEADER_LINES\n");
-//                break;
-//            case HEADER_LINES:
-//                if (lines.at(0).empty()) {
-//                    if (!_request->getHeader("Content-Length").empty()) {
-//                        _parsingStatus = BODY;
-//                        printf("RequestParser :: Parsing status: BODY\n");
-//                        _bodyLength = std::stoi(_request->getHeader("Content-Length"));
-//                    }
-//                    else {
-//                        _parsingStatus = FINISHED;
-//                        printf("RequestParser :: Parsing status: FINISHED\n");
-//                    }
-//                }
-//                else {
-//                    parseHeaderLine(lines.at(0));
-//                    if (lines.at(0).size() + 2 < _buffer.size())
-//                        _buffer.erase(0, lines.at(0).size() + 2);
-//                    else _buffer.erase(0, _buffer.size());
-//                }
-//                break;
-//            case BODY:parseBodyLine(lines.at(0));
-//                if (lines.at(0).size() + 2 < _buffer.size()) {
-//                    _buffer.erase(0, lines.at(0).size() + 2);
-//                    _bodyLength -= lines.at(0).size() + 2;
-//                }
-//                else {
-//                    _buffer.erase(0, _buffer.size());
-//                    _bodyLength -= _buffer.size();
-//
-//                }
-//                if (_bodyLength <= 0) {
-//                    _parsingStatus = FINISHED;
-//                    printf("RequestParser :: Parsing status: FINISHED\n");
-//                }
-//        }
-//        if (FINISHED == _parsingStatus) {
-//            _parsingStatus = REQUEST_LINE;
-//            return true;
-//        }
-//        lines.erase(lines.begin());
-//    }
-//    return false;
 }
 
 bool RequestParser::parseRequestLine(std::string line)
@@ -211,12 +160,14 @@ bool RequestParser::parseHeaderLine(std::string::const_iterator begin, std::stri
 
 bool RequestParser::parseBodyLine(std::string line)
 {
+    _request->_body.clear();
     _request->_body.append(line).append("\r\n");
     return true;
 }
 
 bool RequestParser::parseBodyLine(std::string::const_iterator begin, std::string::const_iterator end)
 {
+    _request->_body.clear();
     _request->_body.append(begin, end);
     return true;
 }
