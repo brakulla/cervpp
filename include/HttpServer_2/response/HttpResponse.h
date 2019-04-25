@@ -31,6 +31,7 @@ public:
     void send();
     void send(std::string body);
     void sendJson(nlohmann::json &body);
+    void sendJson(std::string json);
     void render(std::string filePath);
     void render(StaticFile &staticFile);
 

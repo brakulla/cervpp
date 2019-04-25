@@ -31,7 +31,7 @@ public:
     void registerController(std::string &path, std::shared_ptr<IController> controller);
 
 private:
-    std::map<std::string, std::shared_ptr<IController>> _controllerMap;
+    std::map<std::shared_ptr<IController>, std::vector<std::string>> _controllerMap;
     std::shared_ptr<IController> _defaultController;
 };
 

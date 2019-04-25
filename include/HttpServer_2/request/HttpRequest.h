@@ -21,7 +21,9 @@ public:
 
 public:
     HTTP_METHOD getMethod() const;
+    std::string getMethodStr() const;
     HTTP_VERSION getVersion() const;
+    std::string getVersionStr() const;
     std::string getURI() const;
 
     std::map<std::string, std::string> getHeaders() const;

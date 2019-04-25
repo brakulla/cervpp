@@ -32,6 +32,12 @@ enum class ConnectionType
     KEEP_ALIVE
 };
 
+enum class ConnectionState
+{
+    NOT_CONNECTED,
+    CONNECTED
+};
+
 class TcpSocket : public brutils::br_object
 {
 public:
@@ -39,7 +45,7 @@ public:
     ~TcpSocket();
 
 public: // signals
-    brutils::signal<> dataReady; // emitted by TcpServer
+    brutils::signal<> dataReady;
     brutils::signal<> disconnected; // emitted by TcpServer
     brutils::signal<> destroyed;
     brutils::signal<> socketError; // TODO: implement (fill)
@@ -70,6 +76,7 @@ public:
     void setReadBufferSize(unsigned long size);
 
     ConnectionType getConnectionType() const;
+    ConnectionState getConnectionState() const;
     bool isKeepAlive() const;
     unsigned long getKeepAliveMax() const;
     unsigned long getKeepAliveTimeout() const;
@@ -81,7 +88,7 @@ private:
     bool connectToHost(struct sockaddr_in addr);
 
 private:
-    std::recursive_mutex _dataMutex;
+    mutable std::recursive_mutex _dataMutex;
 
 private:
     int _socketFd;
@@ -93,6 +100,7 @@ private:
     std::string _dataBuffer;
     struct sockaddr_in _peerSockAddr;
     struct sockaddr_in _serverSockAddr;
+    ConnectionState _connectionState;
 
 };
 

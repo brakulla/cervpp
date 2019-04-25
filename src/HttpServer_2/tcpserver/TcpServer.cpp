@@ -47,8 +47,6 @@ void TcpServer::start(unsigned long port, int maxConnectionSize)
     _serverAddr.sin_addr.s_addr = INADDR_ANY;
     _serverAddr.sin_port = htons((uint16_t) port);
 
-//  if (setsockopt(_serverFd, ))
-
     if (0 > bind(_serverFd, (struct sockaddr *) &_serverAddr, sizeof(_serverAddr)))
         throw std::runtime_error("socket bind failed");
 
@@ -88,16 +86,12 @@ void TcpServer::run()
         }
         else if (0 == pollRes) {
             // timeout
-            printf("TcpServer :: Timeout on poll\n");
             continue;
         }
         else {
-//            printf("TcpServer :: Activity detected on sockets. Poll result: %d\n", pollRes);
             processSockets();
         }
     }
-
-    printf("TcpServer :: Stopped working");
 }
 
 void TcpServer::processSockets()
@@ -129,12 +123,12 @@ void TcpServer::processSockets()
 
 void TcpServer::acceptNewConnections(int serverSocketFd)
 {
-    while (true) { // read incoming sockets until there is no more
+    while (_running) { // read incoming sockets until there is no more or stopped
         struct sockaddr_in client{};
         socklen_t addrLength = sizeof(client);
         int newSocket = ::accept(_serverFd, (struct sockaddr *) &client, &addrLength); 
         if (-1 == newSocket)
-            break;
+            break; // no more new sockets
         else if (0 > newSocket) {
             int err = errno;
             printf("TcpServer :: Error with new incoming connection %d: %d - %s\n",
@@ -148,14 +142,11 @@ void TcpServer::acceptNewConnections(int serverSocketFd)
             connection->close();
         }
         else {
-            printf("TcpServer :: New incoming connection: %d\n", newSocket);
             addToSocketList(newSocket);
             auto connection = std::make_shared<TcpSocket>(newSocket, _serverFd, this->getRootObject());
             _activeConnections.insert(std::make_pair(newSocket, connection));
             int id = SimpleTimer::getInstance().start(SOCKET_TIMEOUT);
-//            printf("TcpServer :: new timer created with id %d\n", id);
             _socketTimeoutMap.insert(std::make_pair(newSocket, id));
-//            printf("TcpServer :: New incoming connection processed\n");
             this->newIncomingConnection.emit(connection);
         }
     }
@@ -163,14 +154,12 @@ void TcpServer::acceptNewConnections(int serverSocketFd)
 
 void TcpServer::connectionClosed(int socketFd)
 {
-//    printf("TcpServer :: TcpSocket closed %d\n", socketFd);
     auto connection = _activeConnections.at(socketFd);
     removeConnection(connection);
 }
 
 void TcpServer::newIncomingData(int socketFd)
 {
-//    printf("TcpServer :: Incoming data on connection %d\n", socketFd);
     auto connection = _activeConnections.at(socketFd);
     SimpleTimer::getInstance().restart(_socketTimeoutMap.at(socketFd), SOCKET_TIMEOUT);
     connection->readFromSocket();
@@ -185,7 +174,6 @@ void TcpServer::socketError(int socketFd)
 
 void TcpServer::timeoutOnSocket(int timerId)
 {
-//    printf("TcpServer :: timeout received with id: %d\n", timerId);
     std::shared_ptr<TcpSocket> connection;
     for (auto &item: _socketTimeoutMap) {
         if (item.second == timerId) {
@@ -194,9 +182,8 @@ void TcpServer::timeoutOnSocket(int timerId)
         }
     }
     if (connection) {
-//        printf("TcpServer :: Timeout! Removing socket: %d\n", connection->getSocketFd());
-//        removeConnection(connection);
-        ::shutdown(connection->getSocketFd(), SHUT_RDWR);
+        connection->close();
+//        ::shutdown(connection->getSocketFd(), SHUT_RDWR);
     }
 }
 
@@ -229,44 +216,9 @@ void TcpServer::removeFromSocketList(int socketFd)
 
 void TcpServer::removeConnection(std::shared_ptr<TcpSocket> connection)
 {
-//    printf("TcpServer :: removing connection: %d\n", connection->getSocketFd());
     removeFromSocketList(connection->getSocketFd());
     SimpleTimer::getInstance().remove(_socketTimeoutMap.at(connection->getSocketFd()));
     _activeConnections.erase(connection->getSocketFd());
     connection->close();
-//    printf("Connection closed\n");
     connection->disconnected.emit();
 }
-
-//void TcpServer::parseIncomingData(int sockedFd)
-//{
-//    printf("TcpServer :: Parsing incoming data\n");
-//    std::shared_ptr<RequestParser> parser;
-//    if (_parserMap.end() == _parserMap.find(sockedFd)) {
-//        parser = std::make_shared<RequestParser>();
-//        _parserMap.insert(std::make_pair(sockedFd, parser));
-//        printf("TcpServer :: New parser created\n");
-//    }
-//    else {
-//        parser = _parserMap.find(sockedFd)->second;
-//        printf("TcpServer :: Using pre-created parser of socket %d\n", int(sockedFd));
-//    }
-//    std::string data;
-//    if (-1 == sockedFd)
-//        throw std::runtime_error("Socket not open");
-//    char incomingData[INCOMING_DATA_SIZE];
-//    ssize_t incomingDataSize;
-//
-//    incomingDataSize = ::recv(sockedFd, incomingData, sizeof(incomingData), 0);
-//    if (0 == incomingDataSize) {
-//        printf("TcpServer :: Socket is closed! Not implemented this, yet\n");
-//        return;
-//    }
-//    printf("TcpServer :: Incoming data\n%s\n", incomingData);
-//    data.append(incomingData);
-//
-//    auto req = parser->parse(data);
-//    printf("TcpServer :: New request %s\n", req->getURI().c_str());
-//    if (req)
-//        newRequestReceived.emit(std::make_shared<TcpSocket>(sockedFd), req);
-//}

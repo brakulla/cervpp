@@ -40,7 +40,6 @@ public:
     void waitForFinished();
 
 private:
-    /*! worker thread function */
     void run();
     void processSockets();
 

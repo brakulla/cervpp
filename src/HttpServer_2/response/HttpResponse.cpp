@@ -42,6 +42,12 @@ void HttpResponse::sendJson(nlohmann::json &body)
     sendResponse(body.dump(4));
 }
 
+void HttpResponse::sendJson(std::string json)
+{
+    auto body = nlohmann::json::parse(json);
+    sendJson(body);
+}
+
 void HttpResponse::render(std::string const filePath)
 {
     StaticFile sFile(filePath);
@@ -85,7 +91,7 @@ void HttpResponse::sendResponse(std::string &body)
 void HttpResponse::sendResponse(const std::string &body)
 {
     if (!body.empty() && _headers.end() == _headers.find("Content-Length"))
-        header("Content-Length", std::to_string(body.size() + 4));
+        header("Content-Length", std::to_string(body.size()));
     sendStatusLine();
     sendHeaders();
     sendBody(body);

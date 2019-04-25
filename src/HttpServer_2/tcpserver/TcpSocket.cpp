@@ -18,7 +18,8 @@ TcpSocket::TcpSocket(int socketFd, int serverFd, brutils::br_object *parent) :
     _socketFd(socketFd),
     _type(ConnectionType::KEEP_ALIVE),
     _maxConnectionCount(100),
-    _keepAliveTimeout(5)
+    _keepAliveTimeout(5),
+    _connectionState(ConnectionState::NOT_CONNECTED)
 {
     auto conf = Configuration::getConf();
     _type = ConnectionType::KEEP_ALIVE;
@@ -44,8 +45,8 @@ TcpSocket::TcpSocket(int socketFd, int serverFd, brutils::br_object *parent) :
         int res = getpeername(_socketFd, (struct sockaddr *) &peerAddr, &addrLength);
         if (0 == res) {
             _peerSockAddr = peerAddr;
+            _connectionState = ConnectionState::CONNECTED;
         }
-//        printf("TcpSocket :: Local address: %s\n", localAddressStr().c_str());
     }
 
     // get server addr info
@@ -56,28 +57,33 @@ TcpSocket::TcpSocket(int socketFd, int serverFd, brutils::br_object *parent) :
         if (0 == res) {
             _serverSockAddr = serverAddr;
         }
-//        printf("TcpSocket :: Peer address: %s\n", peerAddressStr().c_str());
     }
 }
 
 TcpSocket::~TcpSocket()
 {
+    if (ConnectionState::CONNECTED == _connectionState)
+        this->close();
     destroyed.emit();
 }
 
 int TcpSocket::getSocketFd() const
 {
+    std::scoped_lock lock(_dataMutex);
     return _socketFd;
 }
 
 bool TcpSocket::isValid() const
 {
-    return _socketFd != -1;
+    std::scoped_lock lock(_dataMutex);
+    return ConnectionState::CONNECTED == _connectionState;
 }
 
 bool TcpSocket::connectToHost(std::string address, uint16_t port)
 {
-    if (-1 != _socketFd)
+    std::scoped_lock lock(_dataMutex);
+
+    if (ConnectionState::NOT_CONNECTED != _connectionState)
         return false;
 
     _socketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
@@ -92,7 +98,9 @@ bool TcpSocket::connectToHost(std::string address, uint16_t port)
 
 bool TcpSocket::connectToHost(uint32_t address, uint16_t port)
 {
-    if (-1 != _socketFd)
+    std::scoped_lock lock(_dataMutex);
+
+    if (ConnectionState::NOT_CONNECTED != _connectionState)
         return false;
 
     _socketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
@@ -118,9 +126,8 @@ void TcpSocket::write(const std::string &input)
 {
     std::scoped_lock lock(_dataMutex);
 
-//    printf("TcpSocket :: write : %s\n", input.c_str());
-    if (-1 == _socketFd)
-        throw std::runtime_error("Socket not open");
+    if (ConnectionState::CONNECTED != _connectionState)
+        return; // error
     ::send(_socketFd, input.c_str(), input.size(), 0);
 }
 
@@ -128,9 +135,8 @@ void TcpSocket::write(int input)
 {
     std::scoped_lock lock(_dataMutex);
 
-//    printf("TcpSocket :: write : %d\n", input);
-    if (-1 == _socketFd)
-        throw std::runtime_error("Socket not open");
+    if (ConnectionState::CONNECTED != _connectionState)
+        return; // error
     auto str = std::to_string(input);
     ::send(_socketFd, str.c_str(), str.size(), 0);
 }
@@ -139,66 +145,102 @@ void TcpSocket::close()
 {
     std::scoped_lock lock(_dataMutex);
 
-    ::close(_socketFd);
-    _socketFd = -1;
+    if (this->getThreadId() == std::this_thread::get_id())
+        ::close(_socketFd);
+    else
+        ::shutdown(_socketFd, SHUT_RDWR);
+
+    _connectionState = ConnectionState::NOT_CONNECTED;
 }
 
 uint32_t TcpSocket::peerAddress() const
 {
-    return _peerSockAddr.sin_addr.s_addr;
+    std::scoped_lock lock(_dataMutex);
+    if (ConnectionState::CONNECTED == _connectionState)
+        return _peerSockAddr.sin_addr.s_addr;
+    return 0;
 }
 
 std::string TcpSocket::peerAddressStr() const
 {
-    char* addr = inet_ntoa(_peerSockAddr.sin_addr);
-    std::string addressStr = addr;
-    return addressStr;
+    std::scoped_lock lock(_dataMutex);
+
+    if (ConnectionState::CONNECTED == _connectionState) {
+        char* addr = inet_ntoa(_peerSockAddr.sin_addr);
+        std::string addressStr = addr;
+        return addressStr;
+    }
+    return "";
 }
 
 uint16_t TcpSocket::peerPort() const
 {
-    return _peerSockAddr.sin_port;
+    std::scoped_lock lock(_dataMutex);
+    if (ConnectionState::CONNECTED == _connectionState)
+        return _peerSockAddr.sin_port;
+    return 0;
 }
 
 uint32_t TcpSocket::localAddress() const
 {
-    return _serverSockAddr.sin_addr.s_addr;
+    std::scoped_lock lock(_dataMutex);
+    if (ConnectionState::CONNECTED == _connectionState)
+        return _serverSockAddr.sin_addr.s_addr;
+    return 0;
 }
 
 std::string TcpSocket::localAddressStr() const
 {
-    char* addr = inet_ntoa(_serverSockAddr.sin_addr);
-    std::string addressStr = addr;
-    return addressStr;
+    std::scoped_lock lock(_dataMutex);
+    if (ConnectionState::CONNECTED == _connectionState) {
+        char *addr = inet_ntoa(_serverSockAddr.sin_addr);
+        std::string addressStr = addr;
+        return addressStr;
+    }
+    return "";
 }
 
 uint16_t TcpSocket::localPort() const
 {
-    return _serverSockAddr.sin_port;
+    std::scoped_lock lock(_dataMutex);
+    if (ConnectionState::CONNECTED == _connectionState)
+        return _serverSockAddr.sin_port;
+    return 0;
 }
 
 int TcpSocket::readBufferSize() const
 {
+    std::scoped_lock lock(_dataMutex);
     return _dataBuffer.capacity();
 }
 
 void TcpSocket::setReadBufferSize(unsigned long size)
 {
+    std::scoped_lock lock(_dataMutex);
     _dataBuffer.reserve(size);
 }
 
 ConnectionType TcpSocket::getConnectionType() const
 {
+    std::scoped_lock lock(_dataMutex);
     return _type;
+}
+
+ConnectionState TcpSocket::getConnectionState() const
+{
+    std::scoped_lock lock(_dataMutex);
+    return _connectionState;
 }
 
 bool TcpSocket::isKeepAlive() const
 {
+    std::scoped_lock lock(_dataMutex);
     return _type == ConnectionType::KEEP_ALIVE;
 }
 
 unsigned long TcpSocket::getKeepAliveMax() const
 {
+    std::scoped_lock lock(_dataMutex);
     if (ConnectionType::KEEP_ALIVE == _type)
         return _maxConnectionCount;
     return 0;
@@ -206,6 +248,7 @@ unsigned long TcpSocket::getKeepAliveMax() const
 
 unsigned long TcpSocket::getKeepAliveTimeout() const
 {
+    std::scoped_lock lock(_dataMutex);
     if (ConnectionType::KEEP_ALIVE == _type)
         return _keepAliveTimeout;
     return 0;
@@ -215,8 +258,8 @@ void TcpSocket::readFromSocket()
 {
     std::scoped_lock lock(_dataMutex);
 
-    if (-1 == _socketFd)
-        throw std::runtime_error("Socket not open");
+    if (ConnectionState::CONNECTED != _connectionState)
+        return; // error
 
     char incomingData[INCOMING_DATA_SIZE];
     ssize_t totalReceivedSize = 0;
@@ -252,7 +295,14 @@ void TcpSocket::readFromSocket()
 
 bool TcpSocket::connectToHost(struct sockaddr_in addr)
 {
+    std::scoped_lock lock(_dataMutex);
+    if (ConnectionState::NOT_CONNECTED != _connectionState)
+        return false;
     socklen_t addrLen = sizeof(addr);
     int res = connect(_socketFd, (struct sockaddr*)&addr, addrLen);
-    return 0 == res;
+    if (0 == res) {
+        _connectionState = ConnectionState::CONNECTED;
+        return true;
+    }
+    return false;
 }

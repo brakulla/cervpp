@@ -11,17 +11,29 @@
 
 #include "IController.h"
 
-class RestfulAPIController: IController
+enum HTTPMETHOD
+{
+    OPTIONS = 1,
+    GET,
+    HEAD,
+    POST,
+    PUT,
+    DELETE,
+    TRACE,
+    CONNECT
+};
+
+class RestfulAPIController: public IController
 {
 public:
     RestfulAPIController()
         : IController(ControllerType::RestfulAPIController)
     {}
-    ~RestfulAPIController() override = default;
+    virtual ~RestfulAPIController() = default;
 
     void process(std::shared_ptr<HttpRequest> req,
                  std::shared_ptr<HttpResponse> resp) override;
-    void route(HTTP_METHOD method,
+    void route(HTTPMETHOD method,
                std::string route,
                std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)> callback);
 
@@ -31,7 +43,7 @@ private:
     struct Route
     {
         HTTP_METHOD method;
-        std::string route;
+        std::vector<std::string> routePath;
         std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)> callback;
     };
     std::vector<Route> _routeVector;
