@@ -41,7 +41,10 @@ void HttpRequest::setURI(const std::string uri)
 
 void HttpRequest::addHeader(const std::string key, const std::string value)
 {
+    std::string lowerKey = key;
+    std::transform(key.begin(), key.end(), lowerKey.begin(), ::tolower);
     _headers.insert(std::make_pair(key, value));
+    _headerKeyMap.insert(std::make_pair(lowerKey, key));
 }
 
 void HttpRequest::setRawBody(std::string body)
@@ -80,15 +83,25 @@ std::map<std::string, std::string> HttpRequest::getHeaders() const
 
 std::string HttpRequest::getHeader(const std::string key) const
 {
-    auto item = _headers.find(key);
-    if (item != _headers.end())
-        return item->second;
+    std::string lowerKey = key;
+    std::transform(key.begin(), key.end(), lowerKey.begin(), ::tolower);
+    auto item = _headerKeyMap.find(lowerKey);
+    if (item != _headerKeyMap.end())
+        return _headers.at(item->second);
     else return "";
 }
 
-json HttpRequest::getJson()
+std::string HttpRequest::getBody()
 {
-    return json::parse(_body);
+    return _body;
+}
+
+json HttpRequest::getJsonBody()
+{
+    json res;
+    if (!_body.empty())
+        res = json::parse(_body);
+    return res;
 }
 
 std::string HttpRequest::getContentType() const

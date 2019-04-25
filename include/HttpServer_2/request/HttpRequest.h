@@ -30,7 +30,8 @@ public:
     std::string getHeader(std::string key) const;
     std::string getContentType() const;
 
-    nlohmann::json getJson();
+    std::string getBody();
+    nlohmann::json getJsonBody();
 
 private:
     void setMethod(std::string method);
@@ -47,7 +48,8 @@ private:
     HTTP_METHOD _method;
     HTTP_VERSION _version;
     std::string _uri;
-    std::map<std::string, std::string> _headers;
+    std::map<std::string, std::string> _headers; // <Key, Value>
+    std::map<std::string, std::string> _headerKeyMap; // <lowercaseKey, originalKey>
     std::string _body;
 };
 

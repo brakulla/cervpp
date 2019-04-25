@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 #include <regex>
+#include <string_view>
 
 #include <brutils/string_utils.hpp>
 #include <brutils/br_object.hpp>
@@ -29,15 +30,19 @@ private: // slots
 
 private:
     void dataReady();
-    std::shared_ptr<HttpRequest> parse(std::string &input);
+    std::shared_ptr<HttpRequest> parse(std::string input);
+
+    bool parseRequestLine(std::string::const_iterator begin, std::string::const_iterator end);
+    bool parseHeaderLine(std::string::const_iterator begin, std::string::const_iterator end);
+    bool parseBodyLine(std::string::const_iterator begin, std::string::const_iterator end);
 
     bool partialParse();
-    void parseRequestLine(std::string &line);
-    void parseHeaderLine(std::string &line);
-    void parseBodyLine(std::string &line);
+    bool parseRequestLine(std::string line);
+    bool parseHeaderLine(std::string line);
+    bool parseBodyLine(std::string line);
 
 private:
-    std::string _unprocessedData;
+    std::string _buffer;
     std::shared_ptr<HttpRequest> _request;
     std::shared_ptr<TcpSocket> _connection;
     int _bodyLength;

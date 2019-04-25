@@ -22,7 +22,10 @@ int main() {
 
     testRestController->route(GET, "/mother", [] (std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp) {
         printf("Route: %s, method: %s\n", req->getURI().c_str(), req->getMethodStr().c_str());
-        resp->sendJson(R"({"status": "Mother send me"})");
+        if (!req->getBody().empty()) {
+            resp->sendJson(req->getBody());
+        } else
+            resp->sendJson(R"({"status": "Mother send me"})");
     });
 
     server.registerController("/test", std::dynamic_pointer_cast<IController>(testRestController));

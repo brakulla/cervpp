@@ -6,6 +6,8 @@
 
 #include "RequestParser.h"
 
+using namespace std::string_view_literals;
+
 RequestParser::RequestParser(std::shared_ptr<TcpSocket> connection, brutils::br_object *parent) :
     br_object(parent),
     _connection(connection),
@@ -14,7 +16,8 @@ RequestParser::RequestParser(std::shared_ptr<TcpSocket> connection, brutils::br_
     _parsingStatus(REQUEST_LINE),
     _request(std::make_shared<HttpRequest>())
 {
-    _unprocessedData.reserve(_connection->readBufferSize());
+    _buffer.reserve(connection->readBufferSize());
+
     dataReadySlot.setSlotFunction(
         std::bind(&RequestParser::dataReady, this));
     connection->dataReady.connect(dataReadySlot);
@@ -28,9 +31,9 @@ void RequestParser::dataReady()
         newRequestSignal.emit(request, _connection);
 }
 
-std::shared_ptr<HttpRequest> RequestParser::parse(std::string &input)
+std::shared_ptr<HttpRequest> RequestParser::parse(std::string input)
 {
-    _unprocessedData.append(input);
+    _buffer.append(input);
     bool result = partialParse();
     if (result) {
         printf("RequestParser :: Parsing finished\n");
@@ -41,82 +44,179 @@ std::shared_ptr<HttpRequest> RequestParser::parse(std::string &input)
 
 bool RequestParser::partialParse()
 {
-    std::vector<std::string> lines;
-    brutils::split_string(_unprocessedData, lines, "\r\n");
-    while (!lines.empty()) { // we have a line to process
-        switch (_parsingStatus) {
-            case REQUEST_LINE:parseRequestLine(lines.at(0));
-                if (lines.at(0).size() + 2 < _unprocessedData.size())
-                    _unprocessedData.erase(0, lines.at(0).size() + 2);
-                else _unprocessedData.erase(0, _unprocessedData.size());
-                _parsingStatus = HEADER_LINES;
-                printf("RequestParser :: Parsing status changed to HEADER_LINES\n");
-                break;
-            case HEADER_LINES:
-                if (lines.at(0).empty()) {
-                    if (!_request->getHeader("Content-Length").empty()) {
-                        _parsingStatus = BODY;
-                        printf("RequestParser :: Parsing status: BODY\n");
-                        _bodyLength = std::stoi(_request->getHeader("Content-Length"));
-                    }
-                    else {
-                        _parsingStatus = FINISHED;
-                        printf("RequestParser :: Parsing status: FINISHED\n");
-                    }
-                }
-                else {
-                    parseHeaderLine(lines.at(0));
-                    if (lines.at(0).size() + 2 < _unprocessedData.size())
-                        _unprocessedData.erase(0, lines.at(0).size() + 2);
-                    else _unprocessedData.erase(0, _unprocessedData.size());
-                }
-                break;
-            case BODY:parseBodyLine(lines.at(0));
-                if (lines.at(0).size() + 2 < _unprocessedData.size()) {
-                    _unprocessedData.erase(0, lines.at(0).size() + 2);
-                    _bodyLength -= lines.at(0).size() + 2;
-                }
-                else {
-                    _unprocessedData.erase(0, _unprocessedData.size());
-                    _bodyLength -= _unprocessedData.size();
+    std::string_view data = _buffer;
+    auto begin = _buffer.cbegin();
+    auto last = _buffer.cbegin();
 
+    while (!data.empty()) {
+        switch (_parsingStatus) {
+            case REQUEST_LINE: {
+                int index = data.find_first_of("\r\n");
+                data.remove_prefix(index + "\r\n"sv.size());
+                begin = last;
+                last += index;
+
+                parseRequestLine(begin, last);
+                last += "\r\n"sv.size();
+
+                _parsingStatus = HEADER_LINES;
+                break;
+            }
+            case HEADER_LINES: {
+                int index = data.find_first_of("\r\n");
+                data.remove_prefix(index + "\r\n"sv.size());
+                begin = last;
+                last += index;
+
+                if (index == 0) {
+                    data.remove_prefix("\r\n"sv.size()); // remove empty line
+                    last += "\r\n"sv.size();
+                    _parsingStatus = BODY;
+                } else {
+                    if (!parseHeaderLine(begin, last))
+                        return false;
+                    last += "\r\n"sv.size();
                 }
-                if (_bodyLength <= 0) {
-                    _parsingStatus = FINISHED;
-                    printf("RequestParser :: Parsing status: FINISHED\n");
+                break;
+            }
+            case BODY: {
+                if (!_request->getHeader("Content-Length").empty()) {
+                    begin = last;
+                    last += std::stol(_request->getHeader("Content-Length"));
+                    printf("Content-Length: %s, %ld", _request->getHeader("Content-Length").c_str(),
+                        std::stol(_request->getHeader("Content-Length")));
+                    parseBodyLine(begin, last);
                 }
+                _parsingStatus = FINISHED;
+                break;
+            }
+            case FINISHED: {
+                _parsingStatus = REQUEST_LINE;
+                _buffer.erase(_buffer.begin(), last);
+                return true;
+            }
         }
-        if (FINISHED == _parsingStatus) {
-            _parsingStatus = REQUEST_LINE;
-            return true;
-        }
-        lines.erase(lines.begin());
     }
+
     return false;
+//
+//    std::vector<std::string> lines;
+//    brutils::split_string(_buffer, lines, "\r\n");
+//    while (!lines.empty()) { // we have a line to process
+//        switch (_parsingStatus) {
+//            case REQUEST_LINE:
+//                parseRequestLine(lines.at(0));
+//                if (lines.at(0).size() + 2 < _buffer.size())
+//                    _buffer.erase(0, lines.at(0).size() + 2);
+//                else _buffer.erase(0, _buffer.size());
+//                _parsingStatus = HEADER_LINES;
+//                printf("RequestParser :: Parsing status changed to HEADER_LINES\n");
+//                break;
+//            case HEADER_LINES:
+//                if (lines.at(0).empty()) {
+//                    if (!_request->getHeader("Content-Length").empty()) {
+//                        _parsingStatus = BODY;
+//                        printf("RequestParser :: Parsing status: BODY\n");
+//                        _bodyLength = std::stoi(_request->getHeader("Content-Length"));
+//                    }
+//                    else {
+//                        _parsingStatus = FINISHED;
+//                        printf("RequestParser :: Parsing status: FINISHED\n");
+//                    }
+//                }
+//                else {
+//                    parseHeaderLine(lines.at(0));
+//                    if (lines.at(0).size() + 2 < _buffer.size())
+//                        _buffer.erase(0, lines.at(0).size() + 2);
+//                    else _buffer.erase(0, _buffer.size());
+//                }
+//                break;
+//            case BODY:parseBodyLine(lines.at(0));
+//                if (lines.at(0).size() + 2 < _buffer.size()) {
+//                    _buffer.erase(0, lines.at(0).size() + 2);
+//                    _bodyLength -= lines.at(0).size() + 2;
+//                }
+//                else {
+//                    _buffer.erase(0, _buffer.size());
+//                    _bodyLength -= _buffer.size();
+//
+//                }
+//                if (_bodyLength <= 0) {
+//                    _parsingStatus = FINISHED;
+//                    printf("RequestParser :: Parsing status: FINISHED\n");
+//                }
+//        }
+//        if (FINISHED == _parsingStatus) {
+//            _parsingStatus = REQUEST_LINE;
+//            return true;
+//        }
+//        lines.erase(lines.begin());
+//    }
+//    return false;
 }
 
-void RequestParser::parseRequestLine(std::string &line)
+bool RequestParser::parseRequestLine(std::string line)
 {
+    std::regex r(R"regex(^(\w+)\s(.+)\s(\w+\/[0-9]\.[0-9])$)regex");
     std::smatch match;
-    bool res = std::regex_match(line, match, std::regex(R"regex(^(\w+)\s(.+)\s(\w+\/[0-9]\.[0-9])$)regex"));
+    bool res = std::regex_match(line, match, r);
     if (!res || 4 != match.size())
-        return;
+        return false;
 
     _request->setMethod(match[1].str());
     _request->setURI(match[2].str());
     _request->setVersion(match[3].str());
+
+    return true;
 }
 
-void RequestParser::parseHeaderLine(std::string &line)
+bool RequestParser::parseRequestLine(std::string::const_iterator begin, std::string::const_iterator end)
 {
+    std::regex r(R"regex(^(\w+)\s(.+)\s(\w+\/[0-9]\.[0-9])$)regex");
     std::smatch match;
-    bool res = std::regex_match(line, match, std::regex(R"regex(^(.+):\s(.+)$)regex"));
-    if (!res || 3 != match.size())
-        return;
-    _request->addHeader(match[1].str(), match[2].str());
+    bool res = std::regex_match(begin, end, match, r);
+    if (!res || 4 != match.size())
+        return false;
+
+    _request->setMethod(match[1].str());
+    _request->setURI(match[2].str());
+    _request->setVersion(match[3].str());
+
+    return true;
 }
 
-void RequestParser::parseBodyLine(std::string &line)
+bool RequestParser::parseHeaderLine(std::string line)
+{
+    std::regex r(R"regex(^(.+):\s(.+)$)regex");
+    std::smatch match;
+    bool res = std::regex_match(line, match, r);
+    if (!res || 3 != match.size())
+        return false;
+    _request->addHeader(match[1].str(), match[2].str());
+
+    return true;
+}
+
+bool RequestParser::parseHeaderLine(std::string::const_iterator begin, std::string::const_iterator end)
+{
+    std::regex r(R"regex(^(.+):\s(.+)$)regex");
+    std::smatch match;
+    bool res = std::regex_match(begin, end, match, r);
+    if (!res || 3 != match.size())
+        return false;
+    _request->addHeader(match[1].str(), match[2].str());
+
+    return true;
+}
+
+bool RequestParser::parseBodyLine(std::string line)
 {
     _request->_body.append(line).append("\r\n");
+    return true;
+}
+
+bool RequestParser::parseBodyLine(std::string::const_iterator begin, std::string::const_iterator end)
+{
+    _request->_body.append(begin, end);
+    return true;
 }
