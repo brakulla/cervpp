@@ -23,7 +23,9 @@ int main() {
     testRestController->route(GET, "/mother", [] (std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp) {
         printf("Route: %s, method: %s\n", req->getURI().c_str(), req->getMethodStr().c_str());
         if (!req->getBody().empty()) {
-            resp->sendJson(req->getBody());
+            auto jsonBody = req->getJsonBody();
+            std::cout << "Body read";
+            resp->sendJson(jsonBody);
         } else
             resp->sendJson(R"({"status": "Mother send me"})");
     });

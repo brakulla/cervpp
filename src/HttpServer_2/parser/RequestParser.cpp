@@ -14,7 +14,7 @@ RequestParser::RequestParser(std::shared_ptr<TcpSocket> connection, brutils::br_
     dataReadySlot(this),
     newRequestSignal(this),
     _parsingStatus(REQUEST_LINE),
-    _request(std::make_shared<HttpRequest>())
+    _request(std::make_shared<HttpRequest>(nullptr))
 {
     _buffer.reserve(connection->readBufferSize());
 
@@ -46,7 +46,7 @@ std::shared_ptr<HttpRequest> RequestParser::parse(std::string input)
 bool RequestParser::partialParse()
 {
     if (!_request)
-        _request = std::make_shared<HttpRequest>();
+        _request = std::make_shared<HttpRequest>(nullptr);
 
     std::string_view data = _buffer;
     auto begin = _buffer.cbegin();

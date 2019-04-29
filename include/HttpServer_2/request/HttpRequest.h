@@ -10,14 +10,16 @@
 #include <string>
 #include <map>
 
-#include <nlohmann/json.hpp>
+#include <brutils/variant.h>
 
 #include "httpcommon.h"
+#include "IBodyParser.h"
+#include "JsonBodyParser.h"
 
 class HttpRequest
 {
 public:
-    HttpRequest() = default;
+    HttpRequest(std::shared_ptr<IBodyParser> bodyParser = std::shared_ptr<IBodyParser>());
 
 public:
     HTTP_METHOD getMethod() const;
@@ -31,7 +33,7 @@ public:
     std::string getContentType() const;
 
     std::string getBody();
-    nlohmann::json getJsonBody();
+    brutils::variant getJsonBody();
 
 private:
     void setMethod(std::string method);
@@ -51,6 +53,7 @@ private:
     std::map<std::string, std::string> _headers; // <Key, Value>
     std::map<std::string, std::string> _headerKeyMap; // <lowercaseKey, originalKey>
     std::string _body;
+    std::shared_ptr<IBodyParser> _bodyParser;
 };
 
 #endif //CERVPP_HTTPREQUEST_H

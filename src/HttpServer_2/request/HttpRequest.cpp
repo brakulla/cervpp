@@ -6,7 +6,15 @@
 
 #include "HttpRequest.h"
 
-using json = nlohmann::json;
+#include <algorithm>
+
+HttpRequest::HttpRequest(std::shared_ptr<IBodyParser> bodyParser) : _bodyParser(bodyParser)
+{
+    if (!bodyParser) {
+        auto jsonParser = std::make_shared<JsonBodyParser>();
+        _bodyParser = std::dynamic_pointer_cast<IBodyParser>(jsonParser);
+    }
+}
 
 void HttpRequest::setMethod(const std::string method)
 {
@@ -96,12 +104,11 @@ std::string HttpRequest::getBody()
     return _body;
 }
 
-json HttpRequest::getJsonBody()
+brutils::variant HttpRequest::getJsonBody()
 {
-    json res;
-    if (!_body.empty())
-        res = json::parse(_body);
-    return res;
+    if (_bodyParser)
+        return _bodyParser->parseBody(_body);
+    else return brutils::variant();
 }
 
 std::string HttpRequest::getContentType() const

@@ -26,7 +26,6 @@ void SimpleTimer::run()
             if (0 == item.second->timeout) {
                 std::unique_lock lock(_mutex);
                 timeout.emit(item.first);
-                _waitingList.erase(item.first);
             }
         }
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -36,11 +35,11 @@ void SimpleTimer::run()
 int SimpleTimer::start(unsigned int seconds)
 {
     std::unique_lock lock(_mutex);
-    std::shared_ptr<WaitingItem> item = std::make_shared<WaitingItem>();
+    auto item = std::make_shared<WaitingItem>();
     unsigned int id = _lastId++;
     item->started = true;
     item->timeout = seconds;
-    _waitingList.insert(std::make_pair(id, item));
+    _waitingList[id] = item;
     return id;
 }
 
@@ -50,8 +49,8 @@ bool SimpleTimer::restart(int id, unsigned int seconds)
     auto item = _waitingList.find(id);
     if (_waitingList.end() == item)
         return false;
-    _waitingList[id]->started = true;
-    _waitingList[id]->timeout = seconds;
+    item->second->started = true;
+    item->second->timeout = seconds;
     return true;
 }
 
@@ -61,7 +60,7 @@ bool SimpleTimer::stop(int id)
     auto item = _waitingList.find(id);
     if (_waitingList.end() == item)
         return false;
-    _waitingList[id]->started = false;
+    item->second->started = false;
     return true;
 }
 

@@ -16,6 +16,7 @@
 
 #include "TcpSocket.h"
 #include "HttpRequest.h"
+#include "parser/bodyparser/IBodyParser.h"
 
 class RequestParser : public brutils::br_object
 {
@@ -46,6 +47,7 @@ private:
     std::shared_ptr<HttpRequest> _request;
     std::shared_ptr<TcpSocket> _connection;
     int _bodyLength;
+
 
     enum ParsingStatus
     {

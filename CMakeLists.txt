@@ -15,7 +15,10 @@ file(GLOB SRCS
         src/HttpServer_2/threadpool/*[.c.cc.cpp]
         src/HttpServer_2/staticfile/*[.c.cc.cpp]
         src/HttpServer_2/parser/*[.c.cc.cpp]
+        src/HttpServer_2/parser/bodyparser/*[.c.cc.cpp]
         src/HttpServer_2/timer/*[.c.cc.cpp]
+
+        ../brutils/src/brutils/*[.c.cc.cpp]
 
         controllers/*[.c.cc.cpp]
 )
@@ -30,6 +33,7 @@ include_directories(
         include/HttpServer_2/threadpool
         include/HttpServer_2/staticfile
         include/HttpServer_2/parser
+        include/HttpServer_2/parser/bodyparser
         include/HttpServer_2/timer
 
         ../brutils/include
@@ -39,6 +43,7 @@ include_directories(
 
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(libs/json)
+#add_subdirectory(../brutils ../brutils EXCLUDE_FROM_ALL)
 link_directories(../brutils/lib)
 add_executable(cervpp ${SRCS})
 target_link_libraries(cervpp

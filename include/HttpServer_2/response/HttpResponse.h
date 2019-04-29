@@ -12,11 +12,24 @@
 #include <chrono>
 #include <iomanip>
 
-#include <nlohmann/json.hpp>
+#include "brutils/variant.h"
+#include "brutils/json_generator.h"
 
 #include "httpcommon.h"
 #include "TcpSocket.h"
 #include "StaticFile.h"
+
+/*
+ * NOTES on HttpResponse:
+ * Content-Disposition:
+ * As a response header for the main body
+ *  The first parameter in th
+ *  inline
+ *  attachment
+ *  form-data
+ *  form-data; name="fieldName"
+ *  form-data; name="fieldName"; fileName="filename.jpg"
+ */
 
 class HttpResponse
 {
@@ -30,8 +43,9 @@ public:
     void status(const int status);
     void send();
     void send(std::string body);
-    void sendJson(nlohmann::json &body);
+    void sendJson(const char* json);
     void sendJson(std::string json);
+    void sendJson(brutils::variant body);
     void render(std::string filePath);
     void render(StaticFile &staticFile);
 
@@ -39,8 +53,8 @@ private:
     HTTP_VERSION _version;
     int _status;
     std::map<std::string, std::string> _headers;
-
     std::shared_ptr<TcpSocket> _connection;
+    brutils::json_generator _jsonGenerator;
 
 private:
     void sendResponse();

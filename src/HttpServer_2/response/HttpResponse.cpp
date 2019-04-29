@@ -36,16 +36,21 @@ void HttpResponse::send(std::string body)
     sendResponse(body);
 }
 
-void HttpResponse::sendJson(nlohmann::json &body)
+void HttpResponse::sendJson(const char* json)
 {
-    insertContentTypeHeader("application/json");
-    sendResponse(body.dump(4));
+    sendJson(std::string(json));
 }
 
 void HttpResponse::sendJson(std::string json)
 {
     auto body = nlohmann::json::parse(json);
     sendJson(body);
+}
+
+void HttpResponse::sendJson(brutils::variant body)
+{
+    insertContentTypeHeader("application/json");
+    sendResponse(_jsonGenerator.generate(body));
 }
 
 void HttpResponse::render(std::string const filePath)
@@ -90,8 +95,11 @@ void HttpResponse::sendResponse(std::string &body)
 
 void HttpResponse::sendResponse(const std::string &body)
 {
-    if (!body.empty() && _headers.end() == _headers.find("Content-Length"))
+    printf("HttpResponse :: sendResp\n");
+    if (_headers.end() == _headers.find("Content-Length")) {
         header("Content-Length", std::to_string(body.size()));
+    }
+    printf("HttpResponse :: ContentL %s\n", std::to_string(body.size()).c_str());
     sendStatusLine();
     sendHeaders();
     sendBody(body);
