@@ -104,6 +104,44 @@ bool RequestParser::partialParse()
     return false;
 }
 
+bool RequestParser::parseRequestLine(std::string_view input)
+{
+    int methodStart = 0;
+    int methodEnd = input.find_first_not_of(' ');
+    std::string_view method(input.data(), methodEnd);
+    // validate
+
+    int uriStart = methodEnd+1;
+    int uriEnd = input.find_first_not_of(' ', uriStart);
+
+    int queryStart = input.find_first_of('&', uriStart);
+    int queryEnd = uriEnd;
+    if (std::string_view::npos != queryStart) {
+        uriEnd = queryStart;
+        ++queryStart; // remove '&'
+
+        int i = queryStart;
+        while (i < queryEnd) {
+            for (; std::isalnum(input.at(i)); ++i);
+            if ('=' == input.at(i)) {
+                int keyStart = i + 1;
+                int keyEnd = i++;
+                for (; std::isalnum(input.at(i)); ++i);
+                int valueStart = keyEnd + 1;
+                int valueEnd = i;
+                _request->addQueryParameter(
+                    std::string(input.at(keyStart), keyEnd - keyStart),
+                    std::string(input.at(valueStart), valueEnd - valueStart));
+            }
+        }
+    }
+    std::string_view uri(input.data()+uriStart, uriEnd-uriStart);
+
+    int versionStart = uriEnd+1;
+    int versionEnd = input.size();
+    std::string_view version(input.data()+versionStart, versionEnd-versionStart);
+}
+
 bool RequestParser::parseRequestLine(std::string line)
 {
     std::regex r(R"regex(^(\w+)\s(.+)\s(\w+\/[0-9]\.[0-9])$)regex");
