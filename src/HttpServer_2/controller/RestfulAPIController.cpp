@@ -14,6 +14,7 @@ void RestfulAPIController::process(std::shared_ptr<HttpRequest> req, std::shared
     else
         defaultProc(req, resp);
 }
+
 void RestfulAPIController::route(HTTPMETHOD method,
                                  std::string route,
                                  std::function<void(std::shared_ptr<HttpRequest>,
@@ -25,6 +26,7 @@ void RestfulAPIController::route(HTTPMETHOD method,
     newRoute.callback = std::move(callback);
     _routeVector.push_back(newRoute);
 }
+
 std::function<void(std::shared_ptr<HttpRequest>,
                    std::shared_ptr<HttpResponse>)> RestfulAPIController::getCallback(HTTP_METHOD method,
                                                                                      std::string route)
@@ -39,6 +41,7 @@ std::function<void(std::shared_ptr<HttpRequest>,
     }
     return nullptr;
 }
+
 void RestfulAPIController::defaultProc(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)
 {
     resp->status(404);

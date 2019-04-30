@@ -24,8 +24,15 @@ int main() {
         printf("Route: %s, method: %s\n", req->getURI().c_str(), req->getMethodStr().c_str());
         if (!req->getBody().empty()) {
             auto jsonBody = req->getJsonBody();
-            std::cout << "Body read";
-            resp->sendJson(jsonBody);
+            std::cout << "Body read" << std::endl;
+            if (jsonBody.isMap()) {
+                auto json = jsonBody.toMap();
+                for (auto &item: req->getQueryMap())
+                    json[item.first] = item.second;
+                resp->sendJson(json);
+            } else {
+                resp->sendJson(jsonBody);
+            }
         } else
             resp->sendJson(R"({"status": "Mother send me"})");
     });

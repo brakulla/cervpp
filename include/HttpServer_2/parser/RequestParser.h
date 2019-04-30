@@ -33,7 +33,9 @@ private:
     void dataReady();
     std::shared_ptr<HttpRequest> parse(std::string input);
 
-    bool parseRequestLine(std::string_view input);
+    int parseRequestLine(std::string_view &input);
+    int parseHeaderLine(std::string_view &input);
+    int parseBodyLine(std::string_view &input);
 
     bool parseRequestLine(std::string::const_iterator begin, std::string::const_iterator end);
     bool parseHeaderLine(std::string::const_iterator begin, std::string::const_iterator end);
@@ -43,6 +45,9 @@ private:
     bool parseRequestLine(std::string line);
     bool parseHeaderLine(std::string line);
     bool parseBodyLine(std::string line);
+
+    std::string decode(std::string input);
+    std::string escapeChar(std::string_view ec);
 
 private:
     std::string _buffer;

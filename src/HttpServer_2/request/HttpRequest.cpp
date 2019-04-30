@@ -16,49 +16,6 @@ HttpRequest::HttpRequest(std::shared_ptr<IBodyParser> bodyParser) : _bodyParser(
     }
 }
 
-void HttpRequest::setMethod(const std::string method)
-{
-    auto tmp = STR_TO_HTTP_METHOD.find(method);
-    if (STR_TO_HTTP_METHOD.end() != tmp)
-        _method = tmp->second;
-    else _method = HTTP_METHOD::eUNKNOWN;
-}
-
-void HttpRequest::setMethod(const HTTP_METHOD method)
-{
-    _method = method;
-}
-
-void HttpRequest::setVersion(std::string version)
-{
-    auto tmp = STR_TO_HTTP_VERSION.find(version);
-    if (STR_TO_HTTP_VERSION.end() != tmp)
-        _version = tmp->second;
-    else _version = HTTP_VERSION::eUNKNOWN;
-}
-
-void HttpRequest::setVersion(HTTP_VERSION version)
-{
-    _version = version;
-}
-
-void HttpRequest::setURI(const std::string uri)
-{
-    _uri = uri;
-}
-
-void HttpRequest::addHeader(const std::string key, const std::string value)
-{
-    std::string lowerKey = key;
-    std::transform(key.begin(), key.end(), lowerKey.begin(), ::tolower);
-    _headers.insert(std::make_pair(key, value));
-    _headerKeyMap.insert(std::make_pair(lowerKey, key));
-}
-
-void HttpRequest::setRawBody(std::string body)
-{
-    _body = std::move(body);
-}
 HTTP_METHOD HttpRequest::getMethod() const
 {
     return _method;
@@ -99,6 +56,23 @@ std::string HttpRequest::getHeader(const std::string key) const
     else return "";
 }
 
+std::string HttpRequest::getContentType() const
+{
+    return getHeader("Content-Type");
+}
+
+std::map<std::string, std::string> HttpRequest::getQueryMap()
+{
+    return _query;
+}
+
+std::string HttpRequest::getQuery(std::string query)
+{
+    if (_query.end() != _query.find(query))
+        return _query.at(query);
+    return "";
+}
+
 std::string HttpRequest::getBody()
 {
     return _body;
@@ -111,7 +85,51 @@ brutils::variant HttpRequest::getJsonBody()
     else return brutils::variant();
 }
 
-std::string HttpRequest::getContentType() const
+void HttpRequest::setMethod(const std::string method)
 {
-    return getHeader("Content-Type");
+    auto tmp = STR_TO_HTTP_METHOD.find(method);
+    if (STR_TO_HTTP_METHOD.end() != tmp)
+        _method = tmp->second;
+    else _method = HTTP_METHOD::eUNKNOWN;
+}
+
+void HttpRequest::setMethod(const HTTP_METHOD method)
+{
+    _method = method;
+}
+
+void HttpRequest::setVersion(std::string version)
+{
+    auto tmp = STR_TO_HTTP_VERSION.find(version);
+    if (STR_TO_HTTP_VERSION.end() != tmp)
+        _version = tmp->second;
+    else _version = HTTP_VERSION::eUNKNOWN;
+}
+
+void HttpRequest::setVersion(HTTP_VERSION version)
+{
+    _version = version;
+}
+
+void HttpRequest::setURI(const std::string uri)
+{
+    _uri = uri;
+}
+
+void HttpRequest::addHeader(const std::string key, const std::string value)
+{
+    std::string lowerKey = key;
+    std::transform(key.begin(), key.end(), lowerKey.begin(), ::tolower);
+    _headers.insert(std::make_pair(key, value));
+    _headerKeyMap.insert(std::make_pair(lowerKey, key));
+}
+
+void HttpRequest::addQuery(std::string key, std::string value)
+{
+    _query[key] = value;
+}
+
+void HttpRequest::setRawBody(std::string body)
+{
+    _body = std::move(body);
 }
