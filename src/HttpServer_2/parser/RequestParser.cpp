@@ -101,60 +101,30 @@ bool RequestParser::partialParse()
     return false;
 }
 
-/*
- * SPACE 	%20
-< 	%3C
-> 	%3E
-# 	%23
-% 	%25
-{ 	%7B
-} 	%7D
-| 	%7C
-\ 	%5C
-^ 	%5E
-~ 	%7E
- [ 	%5B
-] 	%5D
-` 	%60
-; 	%3B
-/ 	%2F
-? 	%3F
-: 	%3A
-@ 	%40
-= 	%3D
-& 	%26
-$ 	%24
- */
-
 int RequestParser::parseRequestLine(std::string_view &input)
 {
-    printf("parsing request line\n");
     int requestLineStart = 0;
     int requestLineEnd = input.find_first_of("\r\n");
     if (std::string_view::npos == requestLineEnd)
         return -1; // invalid request line
 
-    printf("4\n");
     // method
     int methodStart = requestLineStart;
     int methodEnd = input.find_first_of(' ');
     if (std::string_view::npos == methodEnd)
         return -1; // could not parse method in request line
 
-    printf("3\n");
     std::string method(input.data(), methodEnd);
     if (STR_TO_HTTP_METHOD.end() == STR_TO_HTTP_METHOD.find(method))
         return -1; // invalid request method
     _request->setMethod(method);
 
-    printf("1\n");
     // uri and query
     int uriStart = methodEnd+1;
     int uriEnd = input.find_first_of(' ', uriStart);
     if (std::string_view::npos == uriEnd)
         return -1; // could not parse uri in request line
 
-    printf("2\n");
     int queryStart = input.find_first_of('?', uriStart);
     int queryEnd = uriEnd;
     if (std::string_view::npos != queryStart) {

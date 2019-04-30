@@ -20,11 +20,26 @@ int main() {
         resp->sendJson(R"({"status": "OK"})");
     });
 
+    testRestController->route(GET, "/auto", [] (auto req, auto resp) {
+        printf("Route: %s, method: %s\n", req->getURI().c_str(), req->getMethodStr().c_str());
+        if (!req->getBody().empty()) {
+            auto jsonBody = req->getJsonBody();
+            if (jsonBody.isMap()) {
+                auto json = jsonBody.toMap();
+                for (auto &item: req->getQueryMap())
+                    json[item.first] = item.second;
+                resp->sendJson(json);
+            } else {
+                resp->sendJson(jsonBody);
+            }
+        } else
+            resp->sendJson(R"({"status": "Auto test"})");
+    });
+
     testRestController->route(GET, "/mother", [] (std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp) {
         printf("Route: %s, method: %s\n", req->getURI().c_str(), req->getMethodStr().c_str());
         if (!req->getBody().empty()) {
             auto jsonBody = req->getJsonBody();
-            std::cout << "Body read" << std::endl;
             if (jsonBody.isMap()) {
                 auto json = jsonBody.toMap();
                 for (auto &item: req->getQueryMap())

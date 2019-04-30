@@ -36,6 +36,12 @@ public:
     void route(HTTPMETHOD method,
                std::string route,
                std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)> callback);
+    void route(HTTPMETHOD method,
+               std::string route,
+               std::vector<std::function<void(std::shared_ptr<HttpRequest>,
+                                              std::shared_ptr<HttpResponse>)>> middlewares,
+               std::function<void(std::shared_ptr<HttpRequest>,
+                                  std::shared_ptr<HttpResponse>)> callback);
 
 private:
     void defaultProc(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp);
@@ -44,11 +50,16 @@ private:
     {
         HTTP_METHOD method;
         std::vector<std::string> routePath;
+        std::vector<std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)>> middlewares;
         std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)> callback;
     };
     std::vector<Route> _routeVector;
     std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)> getCallback(HTTP_METHOD method,
                                                                                                  std::string route);
+    std::vector<std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)>>
+        getMiddlewareList(
+            HTTP_METHOD method,
+            std::string route);
 };
 
 #endif //CERVPP_RESTFULAPICONTROLLER_H
