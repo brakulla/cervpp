@@ -43,7 +43,7 @@ void HttpResponse::sendJson(const char* json)
 
 void HttpResponse::sendJson(std::string json)
 {
-    auto body = nlohmann::json::parse(json);
+    auto body = brutils::json_parser::parse(json);
     sendJson(body);
 }
 

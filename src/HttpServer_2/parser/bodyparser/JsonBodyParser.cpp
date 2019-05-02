@@ -8,5 +8,5 @@
 
 brutils::variant JsonBodyParser::parseBody(std::string body)
 {
-    return _parser.parse(body);
+    return brutils::json_parser::parse(body);
 }

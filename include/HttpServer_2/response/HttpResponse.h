@@ -13,6 +13,7 @@
 #include <iomanip>
 
 #include "brutils/variant.h"
+#include "brutils/json_parser.h"
 #include "brutils/json_generator.h"
 
 #include "httpcommon.h"

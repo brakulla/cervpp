@@ -19,9 +19,6 @@ public:
     virtual ~JsonBodyParser() = default;
 
     brutils::variant parseBody(std::string body) override;
-
-private:
-    brutils::json_parser _parser;
 };
 
 #endif //JSONBODYPARSER_H
