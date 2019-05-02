@@ -46,6 +46,19 @@ void RestfulAPIController::route(HTTPMETHOD method,
     _routeVector.push_back(newRoute);
 }
 
+void RestfulAPIController::route(HTTPMETHOD method,
+                                 std::string route,
+                                 std::vector<IMiddleware> middlewares,
+                                 std::function<void(std::shared_ptr<HttpRequest>,
+                                                    std::shared_ptr<HttpResponse>)> callback)
+{
+    std::vector<std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)>> mwList;
+    for (auto &mw: middlewares) {
+        mwList.emplace_back([&] (auto req, auto res) { mw.callback(req, res); });
+    }
+    this->route(method, route, mwList, callback);
+}
+
 std::function<void(std::shared_ptr<HttpRequest>,
                    std::shared_ptr<HttpResponse>)> RestfulAPIController::getCallback(HTTP_METHOD method,
                                                                                      std::string route)

@@ -10,6 +10,7 @@ file(GLOB SRCS
         src/HttpServer_2/configuration/*[.c.cc.cpp]
         src/HttpServer_2/tcpserver/*[.c.cc.cpp]
         src/HttpServer_2/controller/*[.c.cc.cpp]
+        src/HttpServer_2/middleware/*[.c.cc.cpp]
         src/HttpServer_2/request/*[.c.cc.cpp]
         src/HttpServer_2/response/*[.c.cc.cpp]
         src/HttpServer_2/threadpool/*[.c.cc.cpp]
@@ -28,6 +29,7 @@ include_directories(
         include/HttpServer_2/configuration
         include/HttpServer_2/tcpserver
         include/HttpServer_2/controller
+        include/HttpServer_2/middleware
         include/HttpServer_2/request
         include/HttpServer_2/response
         include/HttpServer_2/threadpool

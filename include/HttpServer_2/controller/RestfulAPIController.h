@@ -10,6 +10,7 @@
 #include <map>
 
 #include "IController.h"
+#include "IMiddleware.h"
 
 enum HTTPMETHOD
 {
@@ -40,6 +41,11 @@ public:
                std::string route,
                std::vector<std::function<void(std::shared_ptr<HttpRequest>,
                                               std::shared_ptr<HttpResponse>)>> middlewares,
+               std::function<void(std::shared_ptr<HttpRequest>,
+                                  std::shared_ptr<HttpResponse>)> callback);
+    void route(HTTPMETHOD method,
+               std::string route,
+               std::vector<IMiddleware> middlewares,
                std::function<void(std::shared_ptr<HttpRequest>,
                                   std::shared_ptr<HttpResponse>)> callback);
 
