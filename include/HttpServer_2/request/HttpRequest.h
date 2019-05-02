@@ -37,6 +37,10 @@ public:
     std::string getBody();
     brutils::variant getJsonBody();
 
+    void setUserData(std::string key, brutils::variant value);
+    brutils::variant_map getUserDataMap();
+    brutils::variant getUserData(std::string key);
+
 private:
     void setMethod(std::string method);
     void setMethod(HTTP_METHOD method);
@@ -58,6 +62,7 @@ private:
     std::map<std::string, std::string> _headerKeyMap; // <lowercaseKey, originalKey>
     std::string _body;
     std::shared_ptr<IBodyParser> _bodyParser;
+    brutils::variant_map _userData;
 };
 
 #endif //CERVPP_HTTPREQUEST_H

@@ -85,6 +85,24 @@ brutils::variant HttpRequest::getJsonBody()
     else return brutils::variant();
 }
 
+void HttpRequest::setUserData(std::string key, brutils::variant value)
+{
+    _userData[key] = value;
+}
+
+brutils::variant_map HttpRequest::getUserDataMap()
+{
+    return _userData;
+}
+
+brutils::variant HttpRequest::getUserData(std::string key)
+{
+    auto value = _userData.find(key);
+    if (_userData.end() != value)
+        return value->second;
+    return nullptr;
+}
+
 void HttpRequest::setMethod(const std::string method)
 {
     auto tmp = STR_TO_HTTP_METHOD.find(method);
