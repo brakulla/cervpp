@@ -7,14 +7,10 @@
 ServerThreadPool::ServerThreadPool()
     : timeoutOccurred(nullptr), _lastId(0), _maxThreadSize(5), _timeoutDuration(5)
 {
-    auto conf = Configuration::getConf();
-    if (conf.end() != conf.find("Thread")) {
-        auto threadConf = conf["Thread"];
-        if (threadConf.end() != threadConf.find("MaxThreadSize"))
-            _maxThreadSize = threadConf["MaxThreadSize"].get<int>();
-        if (threadConf.end() != threadConf.find("ThreadTimeout"))
-            _timeoutDuration = threadConf["ThreadTimeout"];
-    }
+    _maxThreadSize = (int)Configuration::getValue("Thread.MaxThreadSize", 5).toFloat();
+    printf("Thread.MaxThreadSize %d %s\n", _maxThreadSize, Configuration::getValue("Thread.MaxThreadSize", 5).getTypeInfo()->name());
+    _timeoutDuration = (int)Configuration::getValue("Thread.ThreadTimeout", 5).toFloat();
+    printf("Thread.ThreadTimeout %d\n", _timeoutDuration);
 
     timeoutOccurred.setSlotFunction(
         std::bind(&ServerThreadPool::timeoutOnThread, this, std::placeholders::_1));

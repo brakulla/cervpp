@@ -19,8 +19,10 @@ HttpServer::HttpServer() :
     _tcpServer->newIncomingConnection.connect(_parser->newConnectionSlot);
     _parser->newRequestSignal.connect(this->newRequestSlot);
 
-    int port = Configuration::getValue<int>("Server.Port");
-    int connSize = Configuration::getValue<int>("Connection.MaxConnectionCount");
+    int port = (int)Configuration::getValue("Server.Port").toFloat();
+    printf("Server.Port %d\n", port);
+    int connSize = (int)Configuration::getValue("Connection.MaxConnectionCount").toFloat();
+    printf("Connection.MaxConnectionCount %d\n", connSize);
     _tcpServer->start(port, connSize);
 }
 

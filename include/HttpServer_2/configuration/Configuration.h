@@ -10,8 +10,7 @@
 #include <map>
 #include <string>
 
-#include <nlohmann/json.hpp>
-#include <brutils/string_utils.hpp>
+#include <brutils/variant.h>
 
 class Configuration
 {
@@ -28,23 +27,13 @@ public:
 
     static void parseFile(std::ifstream &inStream);
     static void parseFile(std::string &content);
-    static nlohmann::json getConf();
+    static brutils::variant getConf();
 
-    template <typename T>
-    static T getValue(std::string key)
-    {
-        std::vector<std::string> keyList;
-        brutils::split_string(key, keyList, '.');
-        nlohmann::json conf = get()._config;
-        for (auto &depth: keyList) {
-            conf = conf[depth];
-        }
-        return conf.get<T>();
-    }
+    static brutils::variant getValue(std::string key, brutils::variant defaultValue = nullptr);
 
 private:
     Configuration() = default;
-    nlohmann::json _config;
+    brutils::variant _config;
 };
 
 #endif //CERVPP_CONFIGURATION_H

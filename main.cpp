@@ -51,8 +51,7 @@ int main() {
         } else
             resp->sendJson(R"({"status": "Mother send me"})");
     });
-
-    server.registerController("/test", std::dynamic_pointer_cast<IController>(testRestController));
+    server.registerController("/test", testRestController);
 
     server.joinThread();
 

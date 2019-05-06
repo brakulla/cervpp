@@ -86,18 +86,15 @@ static std::map<std::string, std::string> mimeMap = {
 StaticFile::StaticFile(std::string path)
     : _read(false), _valid(false)
 {
-    auto conf = Configuration::getConf();
-    char cwd[1024];
-    _filePath = getcwd(cwd, 1024);
-    if (conf.end() != conf.find("StaticFile")) {
-        auto staticFileConf = conf["StaticFile"];
-        if (staticFileConf.end() != staticFileConf.find("RootPath"))
-            _filePath = staticFileConf["RootPath"].get<std::string>();
+    _filePath = Configuration::getValue("StaticFile.RootPath").toString();
+    printf("StaticFile.RootPath %s\n", _filePath.c_str());
+    if (_filePath.empty()) {
+        char cwd[1024];
+        _filePath = getcwd(cwd, 1024);
     }
     _filePath.append(path);
     if (_filePath.at(_filePath.size() - 1) == '/')
         _filePath.append("index.html");
-//    printf("StaticFile :: Static file: %s\n", _filePath.c_str());
     readFile();
 }
 bool StaticFile::isValid()
