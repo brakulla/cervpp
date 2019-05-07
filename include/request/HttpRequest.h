@@ -12,7 +12,7 @@
 
 #include <brutils/variant.h>
 
-#include "httpcommon.h"
+#include "../httpcommon.h"
 #include "IBodyParser.h"
 #include "JsonBodyParser.h"
 

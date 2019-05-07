@@ -16,7 +16,7 @@
 
 #include "TcpSocket.h"
 #include "HttpRequest.h"
-#include "parser/bodyparser/IBodyParser.h"
+#include "bodyparser/IBodyParser.h"
 
 class RequestParser : public brutils::br_object
 {

@@ -20,7 +20,7 @@ void Configuration::parseFile(std::ifstream &inStream)
 void Configuration::parseFile(std::string &content)
 {
     get()._config = brutils::json_parser::parse(content);
-    printf("Configuration :: Configuration read\n");
+    printf("Configuration :: Configuration read\n%s\n", content.c_str());
 }
 
 brutils::variant Configuration::getConf()

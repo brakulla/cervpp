@@ -6,18 +6,18 @@ add_definitions(-DPROJECT_VERSION="0.0.3a")
 
 file(GLOB SRCS
         main.cpp
-        src/HttpServer_2/*[.c.cc.cpp]
-        src/HttpServer_2/configuration/*[.c.cc.cpp]
-        src/HttpServer_2/tcpserver/*[.c.cc.cpp]
-        src/HttpServer_2/controller/*[.c.cc.cpp]
-        src/HttpServer_2/middleware/*[.c.cc.cpp]
-        src/HttpServer_2/request/*[.c.cc.cpp]
-        src/HttpServer_2/response/*[.c.cc.cpp]
-        src/HttpServer_2/threadpool/*[.c.cc.cpp]
-        src/HttpServer_2/staticfile/*[.c.cc.cpp]
-        src/HttpServer_2/parser/*[.c.cc.cpp]
-        src/HttpServer_2/parser/bodyparser/*[.c.cc.cpp]
-        src/HttpServer_2/timer/*[.c.cc.cpp]
+        src/*[.c.cc.cpp]
+        src/configuration/*[.c.cc.cpp]
+        src/tcpserver/*[.c.cc.cpp]
+        src/controller/*[.c.cc.cpp]
+        src/middleware/*[.c.cc.cpp]
+        src/request/*[.c.cc.cpp]
+        src/response/*[.c.cc.cpp]
+        src/threadpool/*[.c.cc.cpp]
+        src/staticfile/*[.c.cc.cpp]
+        src/parser/*[.c.cc.cpp]
+        src/parser/bodyparser/*[.c.cc.cpp]
+        src/timer/*[.c.cc.cpp]
 
         ../brutils/src/brutils/*[.c.cc.cpp]
 
@@ -25,30 +25,27 @@ file(GLOB SRCS
 )
 
 include_directories(
-        include/HttpServer_2
-        include/HttpServer_2/configuration
-        include/HttpServer_2/tcpserver
-        include/HttpServer_2/controller
-        include/HttpServer_2/middleware
-        include/HttpServer_2/request
-        include/HttpServer_2/response
-        include/HttpServer_2/threadpool
-        include/HttpServer_2/staticfile
-        include/HttpServer_2/parser
-        include/HttpServer_2/parser/bodyparser
-        include/HttpServer_2/timer
+        include
+        include/configuration
+        include/tcpserver
+        include/controller
+        include/middleware
+        include/request
+        include/response
+        include/threadpool
+        include/staticfile
+        include/parser
+        include/parser/bodyparser
+        include/timer
 
         ../brutils/include
 
         controllers
 )
 
-set(JSON_BuildTests OFF CACHE INTERNAL "")
-add_subdirectory(libs/json)
 #add_subdirectory(../brutils ../brutils EXCLUDE_FROM_ALL)
 link_directories(../brutils/lib)
 add_executable(cervpp ${SRCS})
 target_link_libraries(cervpp
-        PRIVATE nlohmann_json::nlohmann_json
         PRIVATE brutils
         PUBLIC pthread)

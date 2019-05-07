@@ -2,7 +2,7 @@
 // Created by brakulla on 2/24/19.
 //
 
-#include "HttpServer.h"
+#include "../include/HttpServer.h"
 
 HttpServer::HttpServer() :
     br_threaded_object(),
@@ -20,9 +20,7 @@ HttpServer::HttpServer() :
     _parser->newRequestSignal.connect(this->newRequestSlot);
 
     int port = (int)Configuration::getValue("Server.Port").toFloat();
-    printf("Server.Port %d\n", port);
     int connSize = (int)Configuration::getValue("Connection.MaxConnectionCount").toFloat();
-    printf("Connection.MaxConnectionCount %d\n", connSize);
     _tcpServer->start(port, connSize);
 }
 
