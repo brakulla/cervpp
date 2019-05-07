@@ -1,0 +1,18 @@
+{
+  "Server": {
+    "Port": 3000
+  },
+  "Connection": {
+    "KeepAlive": true,
+    "MaxConnectionCount": 5,
+    "KeepAliveTimeout": 100,
+    "MaxConnectionSize": 5
+  },
+  "StaticFile": {
+    "RootPath": "/home/brakulla/Projects/cervpp/view/"
+  },
+  "Thread": {
+    "MaxThreadSize": 5,
+    "ThreadTimeout": 5
+  }
+}
