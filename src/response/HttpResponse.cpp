@@ -95,11 +95,9 @@ void HttpResponse::sendResponse(std::string &body)
 
 void HttpResponse::sendResponse(const std::string &body)
 {
-    printf("HttpResponse :: sendResp\n");
     if (_headers.end() == _headers.find("Content-Length")) {
         header("Content-Length", std::to_string(body.size()));
     }
-    printf("HttpResponse :: ContentL %s\n", std::to_string(body.size()).c_str());
     sendStatusLine();
     sendHeaders();
     sendBody(body);

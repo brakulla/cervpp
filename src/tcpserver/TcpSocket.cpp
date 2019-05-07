@@ -21,10 +21,8 @@ TcpSocket::TcpSocket(int socketFd, int serverFd, brutils::br_object *parent) :
     _keepAliveTimeout(5),
     _connectionState(ConnectionState::NOT_CONNECTED)
 {
-    _maxConnectionCount = (int)Configuration::getValue("TcpSocket.MaxConnectionCount", 100).toFloat();
-    printf("TcpSocket.MaxConnectionCount %d\n", _maxConnectionCount);
-    _keepAliveTimeout = (int)Configuration::getValue("TcpSocket.KeepAliveTimeout", 5).toFloat();
-    printf("TcpSocket.KeepAliveTimeout %d\n", _keepAliveTimeout);
+    _maxConnectionCount = (int)Configuration::getValue("Connection.MaxConnectionCount", 100).toFloat();
+    _keepAliveTimeout = (int)Configuration::getValue("Connection.KeepAliveTimeout", 5).toFloat();
     _type = Configuration::getValue("KeepAlive", true).toBool() ? ConnectionType::KEEP_ALIVE : ConnectionType::CLOSE;
 
     // set read buffer size

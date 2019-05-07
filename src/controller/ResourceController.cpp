@@ -4,8 +4,6 @@
  * Description
  */
 
-#include <controller/ResourceController.h>
-
 #include "ResourceController.h"
 
 void ResourceController::process(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)

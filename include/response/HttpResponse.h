@@ -16,7 +16,7 @@
 #include "brutils/json_parser.h"
 #include "brutils/json_generator.h"
 
-#include "httpcommon.h"
+#include "../httpcommon.h"
 #include "TcpSocket.h"
 #include "StaticFile.h"
 

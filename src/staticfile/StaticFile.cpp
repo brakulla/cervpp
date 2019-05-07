@@ -4,8 +4,6 @@
  * Description
  */
 
-#include <staticfile/StaticFile.h>
-
 #include "StaticFile.h"
 
 #define VIEW_PATH "/home/burakon/Projects/per/cervpp/view/"
@@ -87,7 +85,6 @@ StaticFile::StaticFile(std::string path)
     : _read(false), _valid(false)
 {
     _filePath = Configuration::getValue("StaticFile.RootPath").toString();
-    printf("StaticFile.RootPath %s\n", _filePath.c_str());
     if (_filePath.empty()) {
         char cwd[1024];
         _filePath = getcwd(cwd, 1024);
