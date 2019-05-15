@@ -28,7 +28,7 @@ public:
     void processRequest(std::shared_ptr<HttpRequest> request,
                         std::shared_ptr<HttpResponse> response);
     /*! registers controller for the given path */
-    void registerController(std::string &path, std::shared_ptr<IController> controller);
+    void registerController(std::string &&path, std::shared_ptr<IController> controller);
 
 private:
     std::map<std::shared_ptr<IController>, std::vector<std::string>> _controllerMap;

@@ -35,16 +35,16 @@ public:
     void process(std::shared_ptr<HttpRequest> req,
                  std::shared_ptr<HttpResponse> resp) override;
     void route(HTTPMETHOD method,
-               std::string route,
+               std::string &&route,
                std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)> callback);
     void route(HTTPMETHOD method,
-               std::string route,
+               std::string &&route,
                std::vector<std::function<void(std::shared_ptr<HttpRequest>,
                                               std::shared_ptr<HttpResponse>)>> middlewares,
                std::function<void(std::shared_ptr<HttpRequest>,
                                   std::shared_ptr<HttpResponse>)> callback);
     void route(HTTPMETHOD method,
-               std::string route,
+               std::string &&route,
                std::vector<IMiddleware> middlewares,
                std::function<void(std::shared_ptr<HttpRequest>,
                                   std::shared_ptr<HttpResponse>)> callback);

@@ -26,7 +26,7 @@ class HttpServer : public brutils::br_threaded_object
 public:
     HttpServer();
 
-    void registerController(std::string path, std::shared_ptr<IController> controller);
+    void registerController(std::string &&path, std::shared_ptr<IController> controller);
 
     void joinThread();
 

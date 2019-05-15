@@ -14,9 +14,9 @@ void ResourceController::process(std::shared_ptr<HttpRequest> req, std::shared_p
         _resourceMap[pathLevels.at(pathLevels.size() - 1)](req, resp);
     }
 }
-void ResourceController::addResource(std::string resource,
+void ResourceController::addResource(std::string &&resource,
                                      std::function<void(std::shared_ptr<HttpRequest>,
                                                         std::shared_ptr<HttpResponse>)> callback)
 {
-    _resourceMap.insert(std::make_pair(resource, callback));
+    _resourceMap.insert(std::make_pair(std::forward<std::string>(resource), callback));
 }

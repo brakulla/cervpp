@@ -14,7 +14,8 @@ RequestParser::RequestParser(std::shared_ptr<TcpSocket> connection, brutils::br_
     dataReadySlot(this),
     newRequestSignal(this),
     _parsingStatus(REQUEST_LINE),
-    _request(std::make_shared<HttpRequest>(nullptr))
+    _request(std::make_shared<HttpRequest>(nullptr)),
+    _parsing(false)
 {
     _buffer.reserve(connection->readBufferSize());
 
@@ -23,16 +24,27 @@ RequestParser::RequestParser(std::shared_ptr<TcpSocket> connection, brutils::br_
     connection->dataReady.connect(dataReadySlot);
 }
 
-void RequestParser::dataReady()
+void RequestParser::checkIncomingData()
 {
-    auto input = std::move(_connection->read());
-    auto request = parse(input);
-    if (request)
-        newRequestSignal.emit(request, _connection);
-    request.reset();
+    if (!_parsing)
+        dataReady();
 }
 
-std::shared_ptr<HttpRequest> RequestParser::parse(std::string input)
+void RequestParser::dataReady()
+{
+    _parsing = true;
+    auto request = parse(_connection->read());
+    if (request) {
+        printf("Parsed with result\n");
+        newRequestSignal.emit(request, _connection);
+    } else {
+        printf("Parsed without result\n");
+    }
+    request.reset();
+    _parsing = false;
+}
+
+std::shared_ptr<HttpRequest> RequestParser::parse(std::string &&input)
 {
     _buffer.append(input);
     bool result = partialParse();
@@ -54,7 +66,7 @@ bool RequestParser::partialParse()
     while (!data.empty()) {
         switch (_parsingStatus) {
             case REQUEST_LINE: {
-                int parsedSize = parseRequestLine(data);
+                int parsedSize = parseRequestLine(std::forward<std::string_view>(data));
                 if (parsedSize > 0) {
                     totalParsedSize += parsedSize;
                     _parsingStatus = HEADER_LINES;
@@ -69,7 +81,7 @@ bool RequestParser::partialParse()
                     _parsingStatus = BODY;
                     break;
                 }
-                int parsedSize = parseHeaderLine(data);
+                int parsedSize = parseHeaderLine(std::forward<std::string_view>(data));
                 if (parsedSize <= 0) {
                     return false;
                 } else {
@@ -78,7 +90,7 @@ bool RequestParser::partialParse()
                 break;
             }
             case BODY: {
-                int parsedSize = parseBodyLine(data);
+                int parsedSize = parseBodyLine(std::forward<std::string_view>(data));
                 if (0 > parsedSize) {
                     return false;
                 } else {
@@ -101,7 +113,7 @@ bool RequestParser::partialParse()
     return false;
 }
 
-int RequestParser::parseRequestLine(std::string_view &input)
+int RequestParser::parseRequestLine(std::string_view &&input)
 {
     int requestLineStart = 0;
     int requestLineEnd = input.find_first_of("\r\n");
@@ -168,37 +180,7 @@ int RequestParser::parseRequestLine(std::string_view &input)
     return versionEnd+2;
 }
 
-bool RequestParser::parseRequestLine(std::string line)
-{
-    std::regex r(R"regex(^(\w+)\s(.+)\s(\w+\/[0-9]\.[0-9])$)regex");
-    std::smatch match;
-    bool res = std::regex_match(line, match, r);
-    if (!res || 4 != match.size())
-        return false;
-
-    _request->setMethod(match[1].str());
-    _request->setURI(match[2].str());
-    _request->setVersion(match[3].str());
-
-    return true;
-}
-
-bool RequestParser::parseRequestLine(std::string::const_iterator begin, std::string::const_iterator end)
-{
-    std::regex r(R"regex(^(\w+)\s(.+)\s(\w+\/[0-9]\.[0-9])$)regex");
-    std::smatch match;
-    bool res = std::regex_match(begin, end, match, r);
-    if (!res || 4 != match.size())
-        return false;
-
-    _request->setMethod(match[1].str());
-    _request->setURI(match[2].str());
-    _request->setVersion(match[3].str());
-
-    return true;
-}
-
-int RequestParser::parseHeaderLine(std::string_view &input)
+int RequestParser::parseHeaderLine(std::string_view &&input)
 {
     int headerLineStart = 0;
     int headerLineEnd = input.find_first_of("\r\n");
@@ -222,31 +204,7 @@ int RequestParser::parseHeaderLine(std::string_view &input)
     return headerLineEnd+2;
 }
 
-bool RequestParser::parseHeaderLine(std::string line)
-{
-    std::regex r(R"regex(^(.+):\s(.+)$)regex");
-    std::smatch match;
-    bool res = std::regex_match(line, match, r);
-    if (!res || 3 != match.size())
-        return false;
-    _request->addHeader(match[1].str(), match[2].str());
-
-    return true;
-}
-
-bool RequestParser::parseHeaderLine(std::string::const_iterator begin, std::string::const_iterator end)
-{
-    std::regex r(R"regex(^(.+):\s(.+)$)regex");
-    std::smatch match;
-    bool res = std::regex_match(begin, end, match, r);
-    if (!res || 3 != match.size())
-        return false;
-    _request->addHeader(match[1].str(), match[2].str());
-
-    return true;
-}
-
-int RequestParser::parseBodyLine(std::string_view &input)
+int RequestParser::parseBodyLine(std::string_view &&input)
 {
     int contentLength = 0;
     auto contentLengthStr = _request->getHeader("Content-Length");
@@ -259,27 +217,13 @@ int RequestParser::parseBodyLine(std::string_view &input)
     return contentLength;
 }
 
-bool RequestParser::parseBodyLine(std::string line)
-{
-    _request->_body.clear();
-    _request->_body.append(line).append("\r\n");
-    return true;
-}
-
-bool RequestParser::parseBodyLine(std::string::const_iterator begin, std::string::const_iterator end)
-{
-    _request->_body.clear();
-    _request->_body.append(begin, end);
-    return true;
-}
-
 std::string RequestParser::decode(std::string input)
 {
 //    printf("Input: %s\n", input.c_str());
     std::string ret;
     ret.reserve(input.size());
 
-    for (int i = 0; i < input.size()-2; ++i) {
+    for (int i = 0; i < int(input.size())-2; ++i) {
         if ('%' == input.at(i)) {
             int res = std::stol(input.substr(i+1, 2), nullptr, 16);
 //            printf("res %d\n", res);
@@ -289,8 +233,10 @@ std::string RequestParser::decode(std::string input)
             ret += input.at(i);
         }
     }
-    ret += input.at(input.size()-2);
-    ret += input.at(input.size()-1);
+    if (input.size() > 1)
+        ret += input.at(input.size()-2);
+    if (input.size() > 0)
+        ret += input.at(input.size()-1);
 //    printf("Ret: %s\n", ret.c_str());
     return ret;
 }

@@ -19,7 +19,9 @@ ParserThread::ParserThread() :
 
 void ParserThread::newConnectionReceived(std::shared_ptr<TcpSocket> connection)
 {
+    printf("New connection received\n");
     _parserList.emplace_back(std::make_unique<RequestParser>(connection, this));
     _parserList.back()->newRequestSignal.connect(_requestReceivedSlot);
+    _parserList.back()->checkIncomingData();
 }
 

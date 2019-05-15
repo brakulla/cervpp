@@ -279,6 +279,7 @@ void TcpSocket::readFromSocket()
     } while (incomingDataSize == sizeof(incomingData));
 
     if (0 < totalReceivedSize) {
+        printf("Emitting signal\n");
         dataReady.emit();
     }
 }

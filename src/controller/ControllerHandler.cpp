@@ -31,9 +31,9 @@ void ControllerHandler::processRequest(std::shared_ptr<HttpRequest> request, std
         _defaultController->process(request, response);
     }
 }
-void ControllerHandler::registerController(std::string &path, std::shared_ptr<IController> controller)
+void ControllerHandler::registerController(std::string &&path, std::shared_ptr<IController> controller)
 {
-    auto routePath = IController::getRoutePath(path);
+    auto routePath = IController::getRoutePath(std::forward<std::string>(path));
     for (auto &item: _controllerMap) {
         if (item.second == routePath) {
             printf("ControllerHandler :: There is already registered controller for this path: %s\n", path.c_str());

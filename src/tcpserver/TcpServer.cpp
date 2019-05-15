@@ -142,6 +142,7 @@ void TcpServer::acceptNewConnections(int serverSocketFd)
             connection->close();
         }
         else {
+            printf("TcpServer :: New incoming connectiod %d\n", newSocket);
             addToSocketList(newSocket);
             auto connection = std::make_shared<TcpSocket>(newSocket, _serverFd, this->getRootObject());
             _activeConnections.insert(std::make_pair(newSocket, connection));
@@ -160,6 +161,7 @@ void TcpServer::connectionClosed(int socketFd)
 
 void TcpServer::newIncomingData(int socketFd)
 {
+    printf("TcpServer :: New incoming data\n");
     auto connection = _activeConnections.at(socketFd);
     SimpleTimer::getInstance().restart(_socketTimeoutMap.at(socketFd), SOCKET_TIMEOUT);
     connection->readFromSocket();

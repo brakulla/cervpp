@@ -24,9 +24,9 @@ HttpServer::HttpServer() :
     _tcpServer->start(port, connSize);
 }
 
-void HttpServer::registerController(std::string path, std::shared_ptr<IController> controller)
+void HttpServer::registerController(std::string &&path, std::shared_ptr<IController> controller)
 {
-    _controllerHandler->registerController(path, std::move(controller));
+    _controllerHandler->registerController(std::forward<std::string>(path), std::move(controller));
 }
 
 void HttpServer::joinThread()

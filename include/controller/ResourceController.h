@@ -23,7 +23,7 @@ public:
     void process(std::shared_ptr<HttpRequest> req,
                  std::shared_ptr<HttpResponse> resp) override;
 
-    void addResource(std::string resource,
+    void addResource(std::string &&resource,
                      std::function<void(std::shared_ptr<HttpRequest>, std::shared_ptr<HttpResponse>)> callback);
 
 private:

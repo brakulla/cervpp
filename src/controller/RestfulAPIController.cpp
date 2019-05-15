@@ -20,19 +20,19 @@ void RestfulAPIController::process(std::shared_ptr<HttpRequest> req, std::shared
 }
 
 void RestfulAPIController::route(HTTPMETHOD method,
-                                 std::string route,
+                                 std::string &&route,
                                  std::function<void(std::shared_ptr<HttpRequest>,
                                                     std::shared_ptr<HttpResponse>)> callback)
 {
     Route newRoute;
     newRoute.method = HTTP_METHOD(method);
-    newRoute.routePath = getRoutePath(route);
+    newRoute.routePath = getRoutePath(std::forward<std::string>(route));
     newRoute.callback = std::move(callback);
     _routeVector.push_back(newRoute);
 }
 
 void RestfulAPIController::route(HTTPMETHOD method,
-                                 std::string route,
+                                 std::string &&route,
                                  std::vector<std::function<void(std::shared_ptr<HttpRequest>,
                                                                 std::shared_ptr<HttpResponse>)>> middlewares,
                                  std::function<void(std::shared_ptr<HttpRequest>,
@@ -40,14 +40,14 @@ void RestfulAPIController::route(HTTPMETHOD method,
 {
     Route newRoute;
     newRoute.method = HTTP_METHOD(method);
-    newRoute.routePath = getRoutePath(route);
+    newRoute.routePath = getRoutePath(std::forward<std::string>(route));
     newRoute.middlewares = middlewares;
     newRoute.callback = std::move(callback);
     _routeVector.push_back(newRoute);
 }
 
 void RestfulAPIController::route(HTTPMETHOD method,
-                                 std::string route,
+                                 std::string &&route,
                                  std::vector<IMiddleware> middlewares,
                                  std::function<void(std::shared_ptr<HttpRequest>,
                                                     std::shared_ptr<HttpResponse>)> callback)
@@ -56,7 +56,7 @@ void RestfulAPIController::route(HTTPMETHOD method,
     for (auto &mw: middlewares) {
         mwList.emplace_back([&] (auto req, auto res) { mw.callback(req, res); });
     }
-    this->route(method, route, mwList, callback);
+    this->route(method, std::forward<std::string>(route), mwList, callback);
 }
 
 std::function<void(std::shared_ptr<HttpRequest>,
